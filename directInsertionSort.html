@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>直接插入排序</title>
+</head>
+<body>
+<canvas height="600" id="canvas1" style="background:white;" width="1500"></canvas>
+<script>
+    // 动画延时
+    const DELAY = 1000;
+    // 生成数组长度
+    const ARR_LENGTH = 10;
+    const RESULT_DATA = {
+        // 待排序数组
+        arr: [],
+        // 当前正在交换的索引左
+        changeIndexLeft: 0,
+        // 当前正在交换的索引右
+        changeIndexRight: 0,
+        // 未排序元素最终插入位置
+        insertIndex: 0,
+        // 已排序的索引结束位置
+        sortedIndex: 0,
+        // 标记排序中
+        isSorting: false,
+        // 标记插入中
+        isInserting: false,
+        // 记录插入值大小
+        insertValue: 0,
+    };
+
+    function draw(canvas, data) {
+        // 获取上下文对象
+        let context = canvas.getContext('2d');
+        let maxHeight = canvas.getAttribute('height');
+        let width = canvas.getAttribute('width');
+        // 清空画布
+        context.clearRect(0, 0, 1500, 600);
+        for (let i = 0; i < data.arr.length; i++) {
+            if (i === data.insertIndex && data.isInserting) {
+                context.fillStyle = 'lightGray';
+            } else if (i === data.changeIndexLeft && data.isSorting) {
+                context.fillStyle = 'white';
+            } else if (i === data.changeIndexRight && data.isSorting) {
+                context.fillStyle = 'orange';
+            } else if (i <= data.sortedIndex || (i === data.sortedIndex + 1 && data.isSorting)) {
+                context.fillStyle = 'orange';
+            } else {
+                context.fillStyle = 'lightGray';
+            }
+            let w = width / data.arr.length;
+            context.fillRect(i * w, maxHeight - data.arr[i], w - 1, data.arr[i]);
+        }
+        if (data.insertValue !== 0) {
+            context.lineWidth = 1;
+            context.strokeStyle = 'lightGray';
+            context.beginPath();
+            context.moveTo(0, maxHeight - data.insertValue);
+            context.lineTo(width, maxHeight - data.insertValue);
+            context.closePath();
+            context.stroke();
+        }
+    }
+
+    function selectionSort() {
+        let statusArr = [];
+        statusArr.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+        for (let i = 1; i < RESULT_DATA.arr.length; i++) {
+            if (RESULT_DATA.arr[i] < RESULT_DATA.arr[i - 1]) {
+                RESULT_DATA.insertValue = RESULT_DATA.arr[i];
+                let j = i - 1;
+                while (j >= 0 && RESULT_DATA.arr[j] > RESULT_DATA.insertValue) {
+                    // 标记交换
+                    RESULT_DATA.isSorting = true;
+                    RESULT_DATA.changeIndexLeft = j;
+                    RESULT_DATA.changeIndexRight = j + 1;
+                    RESULT_DATA.arr[j + 1] = RESULT_DATA.arr[j--];
+                    statusArr.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+                }
+                RESULT_DATA.isInserting = true;
+                RESULT_DATA.arr[j + 1] = RESULT_DATA.insertValue;
+                RESULT_DATA.insertValue = 0;
+                RESULT_DATA.insertIndex = j + 1;
+                statusArr.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+                RESULT_DATA.isInserting = false;
+            }
+            RESULT_DATA.sortedIndex = i;
+            RESULT_DATA.isSorting = false;
+            statusArr.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+        }
+        return statusArr;
+    }
+
+    function run(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        // 生成随机数组
+        for (let i = 0; i < ARR_LENGTH; i++) {
+            RESULT_DATA.arr.push(Math.floor(Math.random() * 580 + 1));
+        }
+        // 排序时,保存每次变动时的属性,返回变动属性的数组
+        let statusArr = selectionSort();
+        let i = 0;
+        setInterval(() => {
+            if (i < statusArr.length) {
+                draw(canvas, statusArr[i]);
+                i++;
+            }
+        }, DELAY);
+    }
+
+    run('canvas1');
+</script>
+</body>
+</html>
