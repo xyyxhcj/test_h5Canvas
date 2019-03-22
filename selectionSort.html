@@ -46,7 +46,7 @@
         }
     }
 
-    function selectionSort(canvas) {
+    function selectionSort() {
         let statusArr = [];
         statusArr.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         for (let i = 0; i < RESULT_DATA.arr.length; i++) {
@@ -89,7 +89,7 @@
             RESULT_DATA.arr.push(Math.floor(Math.random() * 580 + 1));
         }
         // 排序时,保存每次变动时的属性,返回变动属性的数组
-        let statusArr = selectionSort(canvas);
+        let statusArr = selectionSort();
         let i = 0;
         setInterval(() => {
             if (i < statusArr.length) {
