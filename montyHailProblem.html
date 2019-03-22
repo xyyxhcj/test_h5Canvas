@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>三门问题</title>
+</head>
+<body>
+<canvas height="600" id="canvas1" style="background:gainsboro;" width="600"></canvas>
+<script>
+    let resultData = {
+        // 竞猜次数
+        total: 0,
+        // 猜中次数
+        hits: 0,
+        // 循环频率
+        rate: 1000,
+        // 是否换门
+        isChange: true,
+    };
+
+    function run(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        setInterval(function () {
+            for (let i = 0; i < resultData.rate; i++) {
+                let result = guess(resultData);
+                draw(canvas, resultData, result);
+            }
+            console.log(resultData.hits / resultData.total);
+        }, 1000);
+    }
+
+    function guess(resultData) {
+        let target = Math.floor(Math.random() * 3);
+        let choose = Math.floor(Math.random() * 3);
+        if (target === choose) {
+            // 首次猜中,换门则竞猜失败
+            return !resultData.isChange;
+        } else {
+            // 首次未猜中,换门则竞猜成功
+            return resultData.isChange;
+        }
+    }
+
+    function draw(canvas, resultData, result) {
+        // 获取上下文对象
+        let context = canvas.getContext('2d');
+        // 设置颜色
+        if (result) {
+            resultData.hits += 1;
+            context.fillStyle = 'green';
+        } else {
+            context.fillStyle = 'red';
+        }
+        let width = canvas.getAttribute('width');
+        let height = canvas.getAttribute('height');
+        let i = resultData.total % width;
+        let j = resultData.total / height;
+        context.fillRect(i, j, 1, 1);
+        resultData.total += 1;
+    }
+
+    run('canvas1');
+</script>
+</body>
+</html>
