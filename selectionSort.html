@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>选择排序</title>
+</head>
+<body>
+<canvas height="600" id="canvas1" style="background:gainsboro;" width="1500"></canvas>
+<script>
+    const resultData = {
+        // 待排序数组
+        arr: [],
+        // 当前正在对比的索引
+        compareIndex: 0,
+        // 正在对比的最小值
+        minIndex: 0,
+        // 已对比的索引结束位置
+        sortedIndex: 0,
+        // 显示延迟
+        timeout: 1000,
+        // 标记排序中
+        isSorting: false,
+    };
+
+    function sleep(delay) {
+        let start = (new Date()).getTime();
+        while ((new Date()).getTime() - start < delay) {
+        }
+    }
+
+    function draw(canvas) {
+        // 获取上下文对象
+        let context = canvas.getContext('2d');
+        let maxHeight = canvas.getAttribute('height');
+        let width = canvas.getAttribute('width');
+        // 清空画布
+        context.clearRect(0, 0, 1500, 600);
+        for (let i = 0; i < resultData.arr.length; i++) {
+            if (i <= resultData.sortedIndex) {
+                context.fillStyle = 'orange';
+            } else if (i === resultData.compareIndex) {
+                context.fillStyle = resultData.isSorting ? 'red' : 'blue';
+            } else if (i === resultData.minIndex) {
+                context.fillStyle = resultData.isSorting ? 'red' : 'violet';
+            } else {
+                context.fillStyle = 'lightGray';
+            }
+            context.fillRect(i * 6, maxHeight - resultData.arr[i], 5, resultData.arr[i]);
+        }
+    }
+
+    function selectionSort(canvas) {
+        draw(canvas);
+        for (let i = 0; i < resultData.arr.length; i++) {
+            resultData.minIndex = i;
+            draw(canvas);
+            for (let j = i + 1; j < resultData.arr.length; j++) {
+                // 标记当前正在对比的索引
+                resultData.compareIndex = j;
+                draw(canvas);
+                if (resultData.arr[j] < resultData.arr[resultData.minIndex]) {
+                    resultData.minIndex = j;
+                    draw(canvas);
+                }
+            }
+            if (resultData.minIndex !== i) {
+                // 交换
+                [resultData.arr[i], resultData.arr[resultData.minIndex]] = [resultData.arr[resultData.minIndex], resultData.arr[i]];
+                resultData.isSorting = true;
+                draw(canvas);
+                resultData.isSorting = false;
+            }
+            //  记录已排序索引
+            resultData.sortedIndex = i;
+            draw(canvas);
+        }
+        draw(canvas);
+    }
+
+    function run(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        // 生成随机数组
+        for (let i = 0; i < 20; i++) {
+            resultData.arr.push(Math.floor(Math.random() * 580 + 1));
+        }
+        selectionSort(canvas);
+    }
+
+    run('canvas1');
+</script>
+</body>
+</html>
