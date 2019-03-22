@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>statisticalMechanicsOfMoney</title>
+</head>
+<body>
+<!--<canvas id="canvas1"></canvas>-->
+<canvas id="canvas1" style="background:gainsboro;" width="1400" height="800"></canvas>
+<script>
+    // 计算机模拟二八定律
+    function draw(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        // 获取上下文对象
+        let context = canvas.getContext('2d');
+        // 绘制矩形 start
+        // 设置颜色
+        // context.fillStyle = 'blue';
+        // 边框颜色
+        context.strokeStyle = 'black';
+        // 指定线宽
+        context.lineWidth = 0.5;
+        // 字体
+        context.font = "bold 10px '字体','字体','微软雅黑','宋体'";
+        // 均分钱数
+        let arr = [];
+        for (let i = 0; i < 100; i++) {
+            arr.push({'id': i, 'value': 100});
+        }
+        // 设置每秒重绘
+        setInterval(function () {
+            drawRectangle(context, arr)
+        }, 1000);
+
+    }
+
+    function drawRectangle(context, arr) {
+        // 清空画布
+        context.clearRect(0, 0, 1500, 800);
+        // 每个元素随机给其他人10钱
+        random(arr);
+        // fillRect:填充矩形,指定坐标x,y,宽高
+        for (let i = 0; i < arr.length; i++) {
+            let width = 14;
+            let bottom = 400;
+            // 计算y坐标,高度
+            let h = arr[i].value/2;
+            let y = bottom - h;
+            if (h > 0) {
+                // 填充
+                context.fillStyle = 'blue';
+                context.fillText(arr[i].id, i * width, bottom + 10);
+            } else {
+                // 填充
+                context.fillStyle = 'red';
+                context.fillText(arr[i].id, i * width, bottom - 5);
+            }
+            context.fillRect(i * width, y, 8, h);
+            // 边框
+            context.strokeRect(i * width, y, 8, h);
+        }
+    }
+
+    function random(arr) {
+        for (let i = 0; i < arr.length; i++) {
+            let j = Math.floor(Math.random() * 99);
+            if (j >= i) {
+                j += 1;
+            }
+            arr[i].value -= 10;
+            arr[j].value += 10;
+        }
+        // 排序
+        arr.sort(function (a, b) {
+            return a.value - b.value;
+        });
+    }
+
+    draw('canvas1');
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>statisticalMechanicsOfMoney</title>
+</head>
+<body>
+<!--<canvas id="canvas1"></canvas>-->
+<canvas id="canvas1" style="background:gainsboro;" width="600" height="600"></canvas>
+<script>
+    // 求PI
+    function draw(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        // 获取上下文对象
+        let context = canvas.getContext('2d');
+        // 设置颜色
+        context.fillStyle = 'blue';
+        //生成不重复的随机x,y坐标
+        let dict = {};
+        let total = 359000;
+        let sum = generateXY(dict, 600, total);
+        drawRectangle(context, dict);
+        // 求PI
+        console.log(sum / total * 4);
+
+    }
+
+    // 生成指定数量的点
+    function generateXY(dict, max, size, sum = 0) {
+        let centerX = max / 2;
+        let centerY = max / 2;
+        let count = 0;
+        for (let i = 0; i < size; i++) {
+            let x = Math.floor(Math.random() * max);
+            let y = Math.floor(Math.random() * max);
+            if (!isNaN(x) && !isNaN(y)) {
+                let xKey = x.toString();
+                let yKey = y.toString();
+                let yDict = dict[xKey];
+                if (yDict) {
+                    if (!yDict[yKey]) {
+                        dict[xKey][yKey] = '1';
+                        count += 1;
+                        let distance = countDistance(x, y, centerX, centerY);
+                        if (distance <= max / 2) {
+                            // 点在圆内,计数
+                            sum += 1;
+                        }
+                    }
+                } else {
+                    dict[xKey] = {};
+                    dict[xKey][yKey] = '1';
+                    count += 1;
+                }
+            }
+        }
+        if (count < size) {
+            return generateXY(dict, max, size - count, sum);
+        }
+        return sum;
+    }
+
+    // 计算两点距离
+    function countDistance(x, y, centerX, centerY) {
+        let dx = Math.abs(x - centerX);
+        let dy = Math.abs(y - centerY);
+        return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    }
+
+    // 画点
+    function drawRectangle(context, dict) {
+        // 清空画布
+        // context.clearRect(0, 0, 1500, 800);
+        context.fillStyle = 'blue';
+        // fillRect:填充矩形,指定坐标x,y,宽高
+        for (let x in dict) {
+            for (let y in dict[x]) {
+                context.fillRect(parseInt(x), parseInt(y), 1, 1);
+            }
+        }
+        // 边框
+        // context.strokeRect(i * width, y, 8, h);
+    }
+
+    draw('canvas1');
+</script>
+</body>
+</html>

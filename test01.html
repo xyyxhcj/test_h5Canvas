@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<canvas id="cavsElem">
+    你的浏览器不支持canvas，请升级浏览器<!--浏览器不兼容提示-->
+</canvas>
+<!--创建canvas元素:添加一个<canvas>标记,默认宽高300*150,可通过元素的width属性和height属性改变默认宽高-->
+<canvas id="canvas1" style="background:green;" width="500" height="500"></canvas>
+<canvas id="canvas2" style="background:lightblue;" width="500" height="500"></canvas>
+<script>
+    function draw(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        // 获取上下文对象
+        let context = canvas.getContext('2d');
+        // 绘制矩形 start
+        // 设置颜色
+        context.fillStyle = '#eeeeff';
+        // fillRect:填充矩形,指定坐标x,y,宽高
+        context.fillRect(10, 20, 400, 300);
+        // 绘制 end
+
+        // 绘制矩形+边框 start
+        // 背景色
+        context.fillStyle = 'red';
+        // 边框颜色
+        context.strokeStyle = 'blue';
+        // 指定线宽
+        context.lineWidth = 1;
+        // 填充
+        context.fillRect(50, 50, 100, 100);
+        // strokeRect:绘制边框
+        context.strokeRect(50, 50, 100, 100);
+        // 绘制矩形+边框 end
+
+        //context.arc(150, 75, 75, 0, 2 * Math.PI);
+        // 画圆 start
+        context.fillStyle = 'orange';
+        // 语法:arc(定义一个中心点,半径,起始角度,结束角度,绘图方向-可选参数:False顺时针/True逆时针)
+        // 圆心坐标:150,100;半径:75;圆周起始位置:0;弧长:Math.PI是半圆,Math.PI*2是整个圆,0.5为四分之一
+        context.arc(150, 100, 75, 0, 2 * Math.PI);
+        context.fill();
+        // 画圆 end
+    }
+
+    draw('canvas1');
+
+    // 绘制圆形
+    function drawCircle(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        let context = canvas.getContext('2d');
+        context.fillStyle = '#eeeeff';
+        context.fillRect(0, 0, 400, 300);
+        for (let i = 0; i < 10; i++) {
+            context.beginPath();
+            context.arc(i * (i + 15), i * (i + 15), i * 10, 0, Math.PI * 2, true);
+            context.closePath();
+            context.fillStyle = 'rgba(255, 0, 0, 0.25)';
+            context.fill();
+        }
+    }
+
+    drawCircle('canvas2');
+
+</script>
+</body>
+</html>
