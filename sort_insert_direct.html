@@ -5,12 +5,12 @@
     <title>直接插入排序</title>
 </head>
 <body>
-<canvas height="600" id="canvas1" style="background:white;" width="1500"></canvas>
+<canvas height="600" id="canvas1" style="background:white;" width="500"></canvas>
 <script>
     // 动画延时
-    const DELAY = 1000;
+    const DELAY = 200;
     // 生成数组长度
-    const ARR_LENGTH = 10;
+    const ARR_LENGTH = 50;
     const RESULT_DATA = {
         // 待排序数组
         arr: [],
@@ -57,7 +57,7 @@
             context.strokeStyle = 'lightGray';
             context.beginPath();
             context.moveTo(0, maxHeight - data.insertValue);
-            context.lineTo(width, maxHeight - data.insertValue);
+            context.lineTo(width / data.arr.length * data.sortedIndex, maxHeight - data.insertValue);
             context.closePath();
             context.stroke();
         }
