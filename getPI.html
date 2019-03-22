@@ -8,8 +8,20 @@
 <!--<canvas id="canvas1"></canvas>-->
 <canvas id="canvas1" style="background:gainsboro;" width="600" height="600"></canvas>
 <script>
+    let montaCarloPiData = {
+        // 投放上限
+        total: 359000,
+        // 总投放数量
+        count: 0,
+        // 圆内数量
+        sum: 0,
+        // 每次投放点数
+        points: 1000,
+        //保存生成的不重复的随机x,y坐标
+        dict: {},
+    };
     // 求PI
-    function draw(id) {
+    function run(id) {
         let canvas = document.getElementById(id);
         if (!canvas) {
             return false;
@@ -18,18 +30,20 @@
         let context = canvas.getContext('2d');
         // 设置颜色
         context.fillStyle = 'blue';
-        //生成不重复的随机x,y坐标
-        let dict = {};
-        let total = 359000;
-        let sum = generateXY(dict, 600, total);
-        drawRectangle(context, dict);
-        // 求PI
-        console.log(sum / total * 4);
-
+        setInterval(function () {
+            if (montaCarloPiData.count < montaCarloPiData.total) {
+                montaCarloPiData.count += montaCarloPiData.points;
+                montaCarloPiData.sum = montaCarloPiData.sum + addPoints(montaCarloPiData.dict, canvas.getAttribute('width'), montaCarloPiData.points);
+                draw(context, montaCarloPiData.dict);
+                // 求PI
+                console.log(montaCarloPiData.sum / montaCarloPiData.count * 4);
+            }
+        }, 2000);
     }
 
     // 生成指定数量的点
-    function generateXY(dict, max, size, sum = 0) {
+    function addPoints(dict, max, size, sum = 0) {
+        // 获取圆心x y
         let centerX = max / 2;
         let centerY = max / 2;
         let count = 0;
@@ -44,21 +58,28 @@
                     if (!yDict[yKey]) {
                         dict[xKey][yKey] = '1';
                         count += 1;
-                        let distance = countDistance(x, y, centerX, centerY);
-                        if (distance <= max / 2) {
-                            // 点在圆内,计数
-                            sum += 1;
-                        }
+                        sum = countPoints(x, y, centerX, centerY, max, sum);
                     }
                 } else {
                     dict[xKey] = {};
                     dict[xKey][yKey] = '1';
                     count += 1;
+                    sum = countPoints(x, y, centerX, centerY, max, sum);
                 }
             }
         }
         if (count < size) {
-            return generateXY(dict, max, size - count, sum);
+            return addPoints(dict, max, size - count, sum);
+        }
+        return sum;
+    }
+
+    // 校验,点如果投在圆内,则sum+1
+    function countPoints(x, y, centerX, centerY, max, sum) {
+        let distance = countDistance(x, y, centerX, centerY);
+        if (distance <= max / 2) {
+            // 点在圆内,计数
+            sum += 1;
         }
         return sum;
     }
@@ -71,7 +92,7 @@
     }
 
     // 画点
-    function drawRectangle(context, dict) {
+    function draw(context, dict) {
         // 清空画布
         // context.clearRect(0, 0, 1500, 800);
         context.fillStyle = 'blue';
@@ -81,11 +102,9 @@
                 context.fillRect(parseInt(x), parseInt(y), 1, 1);
             }
         }
-        // 边框
-        // context.strokeRect(i * width, y, 8, h);
     }
 
-    draw('canvas1');
+    run('canvas1');
 </script>
 </body>
 </html>
