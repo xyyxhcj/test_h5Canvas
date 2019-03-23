@@ -10,7 +10,7 @@
     // 动画延时
     const DELAY = 200;
     // 生成数组长度
-    const ARR_LENGTH = 20;
+    const ARR_LENGTH = 50;
     const RESULT_DATA = {
         // 待排序数组
         arr: [],
@@ -89,7 +89,7 @@
             RESULT_DATA.arr.push(Math.floor(Math.random() * 580 + 1));
         }
         // 排序时,保存每次变动时的属性,返回变动属性的数组
-        let statusArr = sort_selection();
+        let statusArr = selectionSort();
         let i = 0;
         setInterval(() => {
             if (i < statusArr.length) {
