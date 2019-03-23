@@ -5,65 +5,62 @@
     <title>归并排序</title>
 </head>
 <body>
-<canvas height="600" id="canvas1" style="background:white;" width="800"></canvas>
+<canvas height="820" id="canvas1" style="background:white;" width="800"></canvas>
 <script>
     // 动画延时
-    const DELAY = 200;
+    const DELAY = 300;
     // 生成数组长度
-    const ARR_LENGTH = 7;
+    const ARR_LENGTH = 50;
     // 保存排序记录
     const STATUS_ARR = [];
     const RESULT_DATA = {
         // 待排序数组
         arr: [],
-        /*
-        // 当前正在交换的索引左
-        changeIndexLeft: 0,
-        // 当前正在交换的索引右
-        changeIndexRight: 0,
-        // 未排序元素最终插入位置
-        insertIndex: 0,
-        // 已排序的索引结束位置
-        sortedIndex: 0,
-        // 标记排序中
-        isSorting: false,
-        // 标记插入中
-        isInserting: false,
-        // 记录插入值大小
-        insertValue: 0,
-        */
+        // 当前正在合并的索引-开始位置
+        margeIndexStart: -1,
+        // 当前正在合并的索引-中间位置
+        margeIndexMiddle: -1,
+        // 当前正在合并的索引-结束位置
+        margeIndexEnd: -1,
+        // 正在对比的索引
+        comparingIndex: [],
+        // 已对比结束的索引
+        compared: [],
+        // 对比结束的索引插入位置
+        insertedIndex: [],
     };
 
     function draw(canvas, data) {
-        // 获取上下文对象
         let context = canvas.getContext('2d');
         let maxHeight = canvas.getAttribute('height');
         let width = canvas.getAttribute('width');
-        // 清空画布
-        context.clearRect(0, 0, 1500, 600);
+        let w = width / data.arr.length;
+        context.clearRect(0, 0, 800, 820);
         for (let i = 0; i < data.arr.length; i++) {
-            if (i === data.insertIndex && data.isInserting) {
+            if (data.insertedIndex.indexOf(i) !== -1) {
+                context.fillStyle = 'orange';
+            } else if (i >= data.margeIndexStart && i < data.margeIndexEnd) {
                 context.fillStyle = 'lightGray';
-            } else if (i === data.changeIndexLeft && data.isSorting) {
-                context.fillStyle = 'white';
-            } else if (i === data.changeIndexRight && data.isSorting) {
-                context.fillStyle = 'orange';
-            } else if (i <= data.sortedIndex || (i === data.sortedIndex + 1 && data.isSorting)) {
-                context.fillStyle = 'orange';
             } else {
-                context.fillStyle = 'lightGray';
+                context.fillStyle = 'blue';
             }
-            let w = width / data.arr.length;
-            context.fillRect(i * w, maxHeight - data.arr[i], w - 1, data.arr[i]);
+            context.fillRect(i * w, maxHeight / 2 - data.arr[i], w - 1, data.arr[i]);
         }
-        if (data.insertValue !== 0) {
-            context.lineWidth = 1;
-            context.strokeStyle = 'lightGray';
-            context.beginPath();
-            context.moveTo(0, maxHeight - data.insertValue);
-            context.lineTo(width / data.arr.length * data.sortedIndex, maxHeight - data.insertValue);
-            context.closePath();
-            context.stroke();
+        if (data.tempArr) {
+            for (let i = 0; i < data.tempArr.length; i++) {
+                if (data.compared.indexOf(i) !== -1) {
+                    context.fillStyle = 'white';
+                } else if (data.comparingIndex.indexOf(i) !== -1) {
+                    context.fillStyle = 'pink';
+                } else if (i >= data.margeIndexStart && i < data.margeIndexMiddle) {
+                    context.fillStyle = 'Aqua';
+                } else if (i >= data.margeIndexMiddle && i < data.margeIndexEnd) {
+                    context.fillStyle = 'LightCyan';
+                } else {
+                    context.fillStyle = 'white';
+                }
+                context.fillRect(i * w, maxHeight - data.tempArr[i], w - 1, data.tempArr[i]);
+            }
         }
     }
 
@@ -78,18 +75,37 @@
     }
 
     function marge(arr, start, middle, length) {
+        RESULT_DATA.compared = [];
+        RESULT_DATA.insertedIndex = [];
+        RESULT_DATA.margeIndexStart = start;
+        RESULT_DATA.margeIndexMiddle = middle;
+        RESULT_DATA.margeIndexEnd = length;
+        // 备份数组,用于显示高度
+        RESULT_DATA.tempArr = RESULT_DATA.arr.slice();
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         let arr1 = arr.slice(start, middle);
         let arr2 = arr.slice(middle, length);
         arr1.push(Infinity);
         arr2.push(Infinity);
         let i = j = 0;
         for (let k = start; k < length; k++) {
+            RESULT_DATA.comparingIndex = [start + i, middle + j];
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
             if (arr1[i] <= arr2[j]) {
+                RESULT_DATA.compared.push(start + i);
                 arr[k] = arr1[i++];
             } else {
+                RESULT_DATA.compared.push(middle + j);
                 arr[k] = arr2[j++];
             }
+            RESULT_DATA.comparingIndex = [];
+            RESULT_DATA.insertedIndex.push(k);
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         }
+        RESULT_DATA.margeIndexStart = undefined;
+        RESULT_DATA.margeIndexMiddle = undefined;
+        RESULT_DATA.margeIndexEnd = undefined;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
     }
 
     function run(id) {
@@ -99,18 +115,17 @@
         }
         // 生成随机数组
         for (let i = 0; i < ARR_LENGTH; i++) {
-            RESULT_DATA.arr.push(Math.floor(Math.random() * 580 + 1));
+            RESULT_DATA.arr.push(Math.floor(Math.random() * 400 + 1));
         }
-        console.log(RESULT_DATA.arr);
         margeSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length);
-        console.log(RESULT_DATA.arr);
+        // STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         let i = 0;
-        /*setInterval(() => {
-            if (i < statusArr.length) {
-                draw(canvas, statusArr[i]);
+        setInterval(() => {
+            if (i < STATUS_ARR.length) {
+                draw(canvas, STATUS_ARR[i]);
                 i++;
             }
-        }, DELAY);*/
+        }, DELAY);
     }
 
     run('canvas1');
