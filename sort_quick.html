@@ -5,17 +5,28 @@
     <title>快速排序</title>
 </head>
 <body>
-<canvas height="820" id="canvas1" style="background:white;" width="800"></canvas>
+<canvas height="410" id="canvas1" style="background:white;" width="800"></canvas>
 <script>
     // 动画延时
-    const DELAY = 100;
+    const DELAY = 200;
     // 生成数组长度
-    const ARR_LENGTH = 10;
+    const ARR_LENGTH = 50;
     // 保存排序记录
     const STATUS_ARR = [];
     const RESULT_DATA = {
         // 待排序数组
         arr: [],
+        // 正在对比的区间
+        compareIndexStart: -1,
+        compareIndexEnd: -1,
+        // 标记索引起点
+        startIndex: -1,
+        // 标记索引即将放入的位置
+        signIndex: -1,
+        // 正在对比的索引
+        comparingIndex: -1,
+        // 正在互换的索引
+        changingIndex: [],
     };
 
     function draw(canvas, data) {
@@ -25,30 +36,30 @@
         let w = width / data.arr.length;
         context.clearRect(0, 0, 800, 820);
         for (let i = 0; i < data.arr.length; i++) {
-            if (data.insertedIndex.indexOf(i) !== -1) {
-                context.fillStyle = 'orange';
-            } else if (i >= data.margeIndexStart && i < data.margeIndexEnd) {
+            if (data.changingIndex.indexOf(i) !== -1) {
+                context.fillStyle = 'red';
+            } else if (i === data.comparingIndex) {
+                context.fillStyle = 'lightBlue';
+            } else if (i === data.startIndex) {
+                context.fillStyle = 'green';
+            } else if (i === data.signIndex) {
+                context.fillStyle = 'lightGreen';
+            } else if (i >= data.compareIndexStart && i <= data.compareIndexEnd) {
                 context.fillStyle = 'lightGray';
             } else {
-                context.fillStyle = 'blue';
+                context.fillStyle = 'orange';
             }
-            context.fillRect(i * w, maxHeight / 2 - data.arr[i], w - 1, data.arr[i]);
+            context.fillRect(i * w, maxHeight - data.arr[i], w - 1, data.arr[i]);
         }
-        if (data.tempArr) {
-            for (let i = 0; i < data.tempArr.length; i++) {
-                if (data.compared.indexOf(i) !== -1) {
-                    context.fillStyle = 'white';
-                } else if (data.comparingIndex.indexOf(i) !== -1) {
-                    context.fillStyle = 'pink';
-                } else if (i >= data.margeIndexStart && i < data.margeIndexMiddle) {
-                    context.fillStyle = 'Aqua';
-                } else if (i >= data.margeIndexMiddle && i < data.margeIndexEnd) {
-                    context.fillStyle = 'LightCyan';
-                } else {
-                    context.fillStyle = 'white';
-                }
-                context.fillRect(i * w, maxHeight - data.tempArr[i], w - 1, data.tempArr[i]);
-            }
+        if (data.startIndex !== -1) {
+            context.lineWidth = 1;
+            context.strokeStyle = 'lightGray';
+            context.beginPath();
+            let h = maxHeight - data.arr[data.startIndex];
+            context.moveTo(data.compareIndexStart * w, h);
+            context.lineTo((data.compareIndexEnd + 1) * w, h);
+            context.closePath();
+            context.stroke();
         }
     }
 
@@ -62,18 +73,43 @@
     }
 
     function partition(arr, start, length) {
+        RESULT_DATA.startIndex = start;
+        RESULT_DATA.compareIndexStart = start;
+        RESULT_DATA.compareIndexEnd = length - 1;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         let sign = start;
+        RESULT_DATA.signIndex = sign;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         for (let i = start + 1; i < length; i++) {
+            RESULT_DATA.comparingIndex = i;
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
             if (arr[i] <= arr[start] && i !== sign) {
                 if (i !== sign + 1) {
+                    RESULT_DATA.changingIndex = [i, sign + 1];
+                    STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
                     [arr[i], arr[sign + 1]] = [arr[sign + 1], arr[i]];
+                    STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+                    RESULT_DATA.changingIndex = [];
+                    STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
                 }
                 sign++;
+                RESULT_DATA.signIndex = sign;
+                STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
             }
         }
         if (start !== sign) {
             [arr[start], arr[sign]] = [arr[sign], arr[start]];
+            RESULT_DATA.startIndex = sign;
+            RESULT_DATA.signIndex = start;
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         }
+        RESULT_DATA.compareIndexStart = -1;
+        RESULT_DATA.compareIndexEnd = -1;
+        RESULT_DATA.signIndex = -1;
+        RESULT_DATA.comparingIndex = -1;
+        RESULT_DATA.startIndex = -1;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         return sign;
     }
 
@@ -86,16 +122,14 @@
         for (let i = 0; i < ARR_LENGTH; i++) {
             RESULT_DATA.arr.push(Math.floor(Math.random() * 400 + 1));
         }
-        console.log(RESULT_DATA.arr);
         quickSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length);
-        console.log(RESULT_DATA.arr);
-        /* let i = 0;
-         setInterval(() => {
-             if (i < STATUS_ARR.length) {
-                 draw(canvas, STATUS_ARR[i]);
-                 i++;
-             }
-         }, DELAY);*/
+        let i = 0;
+        setInterval(() => {
+            if (i < STATUS_ARR.length) {
+                draw(canvas, STATUS_ARR[i]);
+                i++;
+            }
+        }, DELAY);
     }
 
     run('canvas1');
