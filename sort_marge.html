@@ -67,23 +67,23 @@
         }
     }
 
-    function margeSort(arr, start, end) {
-        if (start >= end) {
+    function margeSort(arr, start, length) {
+        if (start >= length - 1) {
             return;
         }
-        let middle = Math.floor((start + end) / 2);
+        let middle = Math.floor((start + length) / 2);
         margeSort(arr, start, middle);
-        margeSort(arr, middle + 1, end);
-        marge(arr, start, middle, end);
+        margeSort(arr, middle, length);
+        marge(arr, start, middle, length);
     }
 
-    function marge(arr, start, middle, end) {
-        let arr1 = arr.slice(start, middle + 1);
-        let arr2 = arr.slice(middle + 1, end + 1);
+    function marge(arr, start, middle, length) {
+        let arr1 = arr.slice(start, middle);
+        let arr2 = arr.slice(middle, length);
         arr1.push(Infinity);
         arr2.push(Infinity);
         let i = j = 0;
-        for (let k = start; k <= end; k++) {
+        for (let k = start; k < length; k++) {
             if (arr1[i] <= arr2[j]) {
                 arr[k] = arr1[i++];
             } else {
@@ -102,7 +102,7 @@
             RESULT_DATA.arr.push(Math.floor(Math.random() * 580 + 1));
         }
         console.log(RESULT_DATA.arr);
-        margeSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length - 1);
+        margeSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length);
         console.log(RESULT_DATA.arr);
         let i = 0;
         /*setInterval(() => {
