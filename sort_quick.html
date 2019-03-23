@@ -64,6 +64,8 @@
     }
 
     function quickSort(arr, start, length) {
+        // 每次取一个随机数与start置换,优化近似排序数组的排序速度
+        let r = Math.floor(Math.random() * (length - start)) + start;
         if (start >= length - 1) {
             return;
         }
@@ -101,6 +103,8 @@
             [arr[start], arr[sign]] = [arr[sign], arr[start]];
             RESULT_DATA.startIndex = sign;
             RESULT_DATA.signIndex = start;
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
             STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
             STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         }
