@@ -10,7 +10,7 @@
     // 动画延时
     const DELAY = 200;
     // 生成数组长度
-    const ARR_LENGTH = 5;
+    const ARR_LENGTH = 50;
     // 保存排序记录
     const STATUS_ARR = [];
     const RESULT_DATA = {
@@ -24,7 +24,7 @@
         // 标记索引即将放入的位置
         signIndex: -1,
         // 正在对比的索引
-        comparingIndex: -1,
+        comparingIndex: [],
         // 正在互换的索引
         changingIndex: [],
     };
@@ -38,7 +38,7 @@
         for (let i = 0; i < data.arr.length; i++) {
             if (data.changingIndex.indexOf(i) !== -1) {
                 context.fillStyle = 'red';
-            } else if (i === data.comparingIndex) {
+            } else if (data.comparingIndex.indexOf(i) !== -1) {
                 context.fillStyle = 'lightBlue';
             } else if (i === data.startIndex) {
                 context.fillStyle = 'green';
@@ -80,7 +80,13 @@
     function partition(arr, start, length) {
         let signLeft = start + 1;
         let signRight = length - 1;
+        RESULT_DATA.startIndex = start;
+        RESULT_DATA.compareIndexStart = start;
+        RESULT_DATA.compareIndexEnd = length - 1;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         while (signLeft <= signRight) {
+            RESULT_DATA.comparingIndex = [signLeft, signRight];
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
             if (arr[signLeft] < arr[start]) {
                 signLeft++;
                 continue;
@@ -91,14 +97,28 @@
             }
             // 此时signLeft值>=start值且signRight值<=start
             if (signLeft !== signRight) {
+                RESULT_DATA.changingIndex = [signLeft, signRight];
+                STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
                 [arr[signLeft], arr[signRight]] = [arr[signRight], arr[signLeft]];
+                STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+                RESULT_DATA.changingIndex = [];
             }
             signLeft++;
             signRight--;
         }
+        RESULT_DATA.comparingIndex = [];
         if (start !== signRight) {
+            RESULT_DATA.signIndex = signRight;
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
             [arr[start], arr[signRight]] = [arr[signRight], arr[start]];
+            RESULT_DATA.startIndex = signRight;
+            RESULT_DATA.signIndex = -1;
+            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         }
+        RESULT_DATA.compareIndexStart = -1;
+        RESULT_DATA.compareIndexEnd = -1;
+        RESULT_DATA.startIndex = -1;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
         return signRight;
     }
 
@@ -111,16 +131,14 @@
         for (let i = 0; i < ARR_LENGTH; i++) {
             RESULT_DATA.arr.push(Math.floor(Math.random() * 400 + 1));
         }
-        console.log(RESULT_DATA.arr);
         quickSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length);
-        console.log(RESULT_DATA.arr);
-        /*let i = 0;
+        let i = 0;
         setInterval(() => {
             if (i < STATUS_ARR.length) {
                 draw(canvas, STATUS_ARR[i]);
                 i++;
             }
-        }, DELAY);*/
+        }, DELAY);
     }
 
     run('canvas1');
