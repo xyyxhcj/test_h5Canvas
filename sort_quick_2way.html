@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>快速排序</title>
+    <title>双路快速排序</title>
 </head>
 <body>
 <canvas height="410" id="canvas1" style="background:white;" width="800"></canvas>
@@ -10,7 +10,7 @@
     // 动画延时
     const DELAY = 200;
     // 生成数组长度
-    const ARR_LENGTH = 50;
+    const ARR_LENGTH = 5;
     // 保存排序记录
     const STATUS_ARR = [];
     const RESULT_DATA = {
@@ -78,46 +78,28 @@
     }
 
     function partition(arr, start, length) {
-        RESULT_DATA.startIndex = start;
-        RESULT_DATA.compareIndexStart = start;
-        RESULT_DATA.compareIndexEnd = length - 1;
-        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-        let sign = start;
-        RESULT_DATA.signIndex = sign;
-        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-        for (let i = start + 1; i < length; i++) {
-            RESULT_DATA.comparingIndex = i;
-            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-            if (arr[i] <= arr[start] && i !== sign) {
-                if (i !== sign + 1) {
-                    RESULT_DATA.changingIndex = [i, sign + 1];
-                    STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-                    [arr[i], arr[sign + 1]] = [arr[sign + 1], arr[i]];
-                    STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-                    RESULT_DATA.changingIndex = [];
-                    STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-                }
-                sign++;
-                RESULT_DATA.signIndex = sign;
-                STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+        let signLeft = start + 1;
+        let signRight = length - 1;
+        while (signLeft <= signRight) {
+            if (arr[signLeft] < arr[start]) {
+                signLeft++;
+                continue;
             }
+            if (arr[signRight] > arr[start]) {
+                signRight--;
+                continue;
+            }
+            // 此时signLeft值>=start值且signRight值<=start
+            if (signLeft !== signRight) {
+                [arr[signLeft], arr[signRight]] = [arr[signRight], arr[signLeft]];
+            }
+            signLeft++;
+            signRight--;
         }
-        if (start !== sign) {
-            [arr[start], arr[sign]] = [arr[sign], arr[start]];
-            RESULT_DATA.startIndex = sign;
-            RESULT_DATA.signIndex = start;
-            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-            STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
+        if (start !== signRight) {
+            [arr[start], arr[signRight]] = [arr[signRight], arr[start]];
         }
-        RESULT_DATA.compareIndexStart = -1;
-        RESULT_DATA.compareIndexEnd = -1;
-        RESULT_DATA.signIndex = -1;
-        RESULT_DATA.comparingIndex = -1;
-        RESULT_DATA.startIndex = -1;
-        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
-        return sign;
+        return signRight;
     }
 
     function run(id) {
@@ -129,14 +111,16 @@
         for (let i = 0; i < ARR_LENGTH; i++) {
             RESULT_DATA.arr.push(Math.floor(Math.random() * 400 + 1));
         }
+        console.log(RESULT_DATA.arr);
         quickSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length);
-        let i = 0;
+        console.log(RESULT_DATA.arr);
+        /*let i = 0;
         setInterval(() => {
             if (i < STATUS_ARR.length) {
                 draw(canvas, STATUS_ARR[i]);
                 i++;
             }
-        }, DELAY);
+        }, DELAY);*/
     }
 
     run('canvas1');
