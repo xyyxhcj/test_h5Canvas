@@ -10,7 +10,7 @@
     // 动画延时
     const DELAY = 200;
     // 生成数组长度
-    const ARR_LENGTH = 10;
+    const ARR_LENGTH = 50;
     // 保存排序记录
     const STATUS_ARR = [];
     const RESULT_DATA = {
@@ -40,18 +40,18 @@
         let w = width / data.arr.length;
         context.clearRect(0, 0, 800, 820);
         for (let i = 0; i < data.arr.length; i++) {
-            if (data.changingIndex.indexOf(i) !== -1) {
-                context.fillStyle = 'red';
-            } else if (i === data.startIndex) {
+            if (i === data.startIndex) {
                 context.fillStyle = 'green';
+            } else if (data.changingIndex.indexOf(i) !== -1) {
+                context.fillStyle = 'red';
             } else if (i === data.signIndex) {
                 context.fillStyle = 'lightGreen';
             } else if (i === data.eqIndex) {
                 context.fillStyle = 'lightBlue';
             } else if (i === data.ltIndex) {
-                context.fillStyle = 'yellow';
+                context.fillStyle = 'LightPink';
             } else if (i === data.gtIndex) {
-                context.fillStyle = 'purple';
+                context.fillStyle = 'LightPink';
             } else if (i >= data.compareIndexStart && i <= data.compareIndexEnd) {
                 context.fillStyle = 'lightGray';
             } else {
@@ -126,7 +126,7 @@
         saveStatus({
             compareIndexStart: -1,
             compareIndexEnd: -1,
-            startIndex: -1,
+            // startIndex: -1,
             signIndex: -1,
             eqIndex: -1,
             ltIndex: -1,
@@ -136,38 +136,29 @@
         return [signLt, signGt];
     }
 
-    function saveStatus(args = {
-        compareIndexStart: undefined,
-        compareIndexEnd: undefined,
-        startIndex: undefined,
-        signIndex: undefined,
-        eqIndex: undefined,
-        ltIndex: undefined,
-        gtIndex: undefined,
-        changingIndex: undefined
-    }) {
-        if (args.compareIndexStart) {
+    function saveStatus(args = {}) {
+        if (args.compareIndexStart !== undefined) {
             RESULT_DATA.compareIndexStart = args.compareIndexStart;
         }
-        if (args.compareIndexEnd) {
+        if (args.compareIndexEnd !== undefined) {
             RESULT_DATA.compareIndexEnd = args.compareIndexEnd;
         }
-        if (args.startIndex) {
+        if (args.startIndex !== undefined) {
             RESULT_DATA.startIndex = args.startIndex;
         }
-        if (args.signIndex) {
+        if (args.signIndex !== undefined) {
             RESULT_DATA.signIndex = args.signIndex;
         }
-        if (args.eqIndex) {
+        if (args.eqIndex !== undefined) {
             RESULT_DATA.eqIndex = args.eqIndex;
         }
-        if (args.ltIndex) {
+        if (args.ltIndex !== undefined) {
             RESULT_DATA.ltIndex = args.ltIndex;
         }
-        if (args.gtIndex) {
+        if (args.gtIndex !== undefined) {
             RESULT_DATA.gtIndex = args.gtIndex;
         }
-        if (args.changingIndex) {
+        if (args.changingIndex !== undefined) {
             RESULT_DATA.changingIndex = args.changingIndex;
         }
         STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
@@ -180,7 +171,7 @@
         }
         // 生成随机数组
         for (let i = 0; i < ARR_LENGTH; i++) {
-            RESULT_DATA.arr.push(Math.floor(Math.random() * 400 + 1));
+            RESULT_DATA.arr.push(Math.floor(Math.random() * 5 + 300));
         }
         quickSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length);
         let i = 0;
