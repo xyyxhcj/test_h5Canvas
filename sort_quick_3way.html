@@ -23,8 +23,12 @@
         startIndex: -1,
         // 标记索引即将放入的位置
         signIndex: -1,
-        // 正在对比的索引
-        comparingIndex: [],
+        // 标记位eq
+        eqIndex: -1,
+        // 标记位lt
+        ltIndex: -1,
+        // 标记位gt
+        gtIndex: -1,
         // 正在互换的索引
         changingIndex: [],
     };
@@ -38,12 +42,16 @@
         for (let i = 0; i < data.arr.length; i++) {
             if (data.changingIndex.indexOf(i) !== -1) {
                 context.fillStyle = 'red';
-            } else if (data.comparingIndex.indexOf(i) !== -1) {
-                context.fillStyle = 'lightBlue';
             } else if (i === data.startIndex) {
                 context.fillStyle = 'green';
             } else if (i === data.signIndex) {
                 context.fillStyle = 'lightGreen';
+            } else if (i === data.eqIndex) {
+                context.fillStyle = 'lightBlue';
+            } else if (i === data.ltIndex) {
+                context.fillStyle = 'yellow';
+            } else if (i === data.gtIndex) {
+                context.fillStyle = 'purple';
             } else if (i >= data.compareIndexStart && i <= data.compareIndexEnd) {
                 context.fillStyle = 'lightGray';
             } else {
@@ -81,27 +89,88 @@
         let signLt = start + 1;
         let signEq = start + 1;
         let signGt = length - 1;
+        saveStatus({compareIndexStart: start, compareIndexEnd: length - 1, startIndex: start});
         while (signEq <= signGt) {
+            saveStatus({
+                ltIndex: signLt,
+                eqIndex: signEq,
+                gtIndex: signGt
+            });
             if (arr[signEq] === arr[start]) {
                 signEq++;
             } else if (arr[signEq] < arr[start]) {
                 if (signEq !== signLt) {
+                    saveStatus({changingIndex: [signEq, signLt]});
                     [arr[signEq], arr[signLt]] = [arr[signLt], arr[signEq]];
+                    saveStatus();
+                    saveStatus({changingIndex: []});
                 }
                 signLt++;
                 signEq++;
             } else {
                 // 大于
                 if (signEq !== signGt) {
+                    saveStatus({changingIndex: [signEq, signGt]});
                     [arr[signEq], arr[signGt]] = [arr[signGt], arr[signEq]];
+                    saveStatus();
+                    saveStatus({changingIndex: []});
                 }
                 signGt--;
             }
         }
         if (start !== signLt - 1) {
+            saveStatus({signIndex: signLt - 1});
             [arr[start], arr[signLt - 1]] = [arr[signLt - 1], arr[start]];
+            saveStatus({startIndex: signLt - 1})
         }
+        saveStatus({
+            compareIndexStart: -1,
+            compareIndexEnd: -1,
+            startIndex: -1,
+            signIndex: -1,
+            eqIndex: -1,
+            ltIndex: -1,
+            gtIndex: -1,
+            changingIndex: []
+        });
         return [signLt, signGt];
+    }
+
+    function saveStatus(args = {
+        compareIndexStart: undefined,
+        compareIndexEnd: undefined,
+        startIndex: undefined,
+        signIndex: undefined,
+        eqIndex: undefined,
+        ltIndex: undefined,
+        gtIndex: undefined,
+        changingIndex: undefined
+    }) {
+        if (args.compareIndexStart) {
+            RESULT_DATA.compareIndexStart = args.compareIndexStart;
+        }
+        if (args.compareIndexEnd) {
+            RESULT_DATA.compareIndexEnd = args.compareIndexEnd;
+        }
+        if (args.startIndex) {
+            RESULT_DATA.startIndex = args.startIndex;
+        }
+        if (args.signIndex) {
+            RESULT_DATA.signIndex = args.signIndex;
+        }
+        if (args.eqIndex) {
+            RESULT_DATA.eqIndex = args.eqIndex;
+        }
+        if (args.ltIndex) {
+            RESULT_DATA.ltIndex = args.ltIndex;
+        }
+        if (args.gtIndex) {
+            RESULT_DATA.gtIndex = args.gtIndex;
+        }
+        if (args.changingIndex) {
+            RESULT_DATA.changingIndex = args.changingIndex;
+        }
+        STATUS_ARR.push(JSON.parse(JSON.stringify(RESULT_DATA)));
     }
 
     function run(id) {
@@ -113,16 +182,14 @@
         for (let i = 0; i < ARR_LENGTH; i++) {
             RESULT_DATA.arr.push(Math.floor(Math.random() * 400 + 1));
         }
-        console.log(RESULT_DATA.arr);
         quickSort(RESULT_DATA.arr, 0, RESULT_DATA.arr.length);
-        console.log(RESULT_DATA.arr);
-        /*let i = 0;
+        let i = 0;
         setInterval(() => {
             if (i < STATUS_ARR.length) {
                 draw(canvas, STATUS_ARR[i]);
                 i++;
             }
-        }, DELAY);*/
+        }, DELAY);
     }
 
     run('canvas1');
