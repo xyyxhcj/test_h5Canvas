@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<input type="file" onchange="jsReadFiles(this.files)"/>
+<canvas height="900" id="canvas1" style="background:white;" width="900"></canvas>
+<div id="div1"></div>
+<script>
+    function draw(id, data) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        let context = canvas.getContext('2d');
+        let size = 8;
+        context.fillStyle = 'blue';
+        for (let i = 0, x = y = 0; i < data.length; i++, x += size) {
+            if (data[i] === '\n') {
+                y += size;
+                x = 0;
+            }
+            if (data[i] === '#') {
+                context.fillRect(x, y, size, size);
+            }
+        }
+    }
+
+    function jsReadFiles(files) {
+        if (files.length) {
+            let file = files[0];
+            let reader = new FileReader();
+            if (/text+/.test(file.type)) {
+                // 文本类型
+                reader.onload = function () {
+                    draw('canvas1', this.result);
+                };
+                reader.readAsText(file);
+            } else if (/image+/.test(file.type)) {
+                reader.onload = function () {
+                    document.getElementById('div1').innerHTML = '<img src="' + this.result + '" alt=""/>';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+</script>
+</body>
+</html>
