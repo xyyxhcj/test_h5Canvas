@@ -10,6 +10,8 @@
 <div id="div1"></div>
 <script>
     function draw(id, data) {
+        let WALL = '#';
+        let ROAD = 1;
         let canvas = document.getElementById(id);
         if (!canvas) {
             return false;
@@ -17,15 +19,19 @@
         let context = canvas.getContext('2d');
         let size = 8;
         context.fillStyle = 'blue';
+        let maze = {};
         for (let i = 0, x = y = 0; i < data.length; i++, x += size) {
             if (data[i] === '\n') {
                 y += size;
                 x = 0;
             }
-            if (data[i] === '#') {
+            if (data[i] === WALL) {
                 context.fillRect(x, y, size, size);
+            } else {
+                maze[x + '-' + y] = ROAD;
             }
         }
+        console.log(maze);
     }
 
     function jsReadFiles(files) {
