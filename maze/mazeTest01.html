@@ -9,29 +9,107 @@
 <canvas height="900" id="canvas1" style="background:white;" width="900"></canvas>
 <div id="div1"></div>
 <script>
+    let DELAY = 50;
+    let SIZE = 8;
+    let WALL = '#';
+    let EMPTY = 0;
+    let ROAD = 1;
+    // 开始坐标
+    // todo 拼接 x_y
+    let START_X = 1;
+    let START_Y = 2;
+    let EXIT_X;
+    let EXIT_Y;
+    // 记录走过的坐标
+    const HISTORY = {};
+    // 定义四个方向下一步的计算方式:上右下左
+    const NEXT = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    // 保存状态
+    const STATUS_ARR = [];
+
+    function go(maze, x, y) {
+        HISTORY[x][y] = true;
+        setType(maze, x, y, ROAD);
+        STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
+        if (x === EXIT_X && y === EXIT_Y) {
+            return true;
+        }
+        for (let i = 0; i < NEXT.length; i++) {
+            let go_x = x + NEXT[i][0];
+            let go_y = y + NEXT[i][1];
+            if (go_x > 0 && go_y > 0 && !HISTORY[go_x][go_y] && maze[go_x][go_y] === EMPTY) {
+                go(maze, go_x, go_y);
+            }
+        }
+    }
+
+    // run()
+    // 设置点的类型 墙/空格/路线
+    function setType(dict, x, y, type) {
+        if (dict[x]) {
+            dict[x][y] = type;
+        } else {
+            dict[x] = {};
+            dict[x][y] = type;
+        }
+    }
+
     function draw(id, data) {
-        let WALL = '#';
-        let ROAD = 1;
         let canvas = document.getElementById(id);
         if (!canvas) {
             return false;
         }
         let context = canvas.getContext('2d');
-        let size = 8;
         context.fillStyle = 'blue';
         let maze = {};
-        for (let i = 0, x = y = 0; i < data.length; i++, x += size) {
+        let x = y = 0;
+        for (let i = 0; i < data.length; i++, x += 1) {
             if (data[i] === '\n') {
-                y += size;
+                y += 1;
                 x = 0;
             }
             if (data[i] === WALL) {
-                context.fillRect(x, y, size, size);
+                setType(maze, x, y, WALL);
+                context.fillRect(x * SIZE, y * SIZE, SIZE, SIZE);
             } else {
-                maze[x + '-' + y] = ROAD;
+                setType(maze, x, y, EMPTY);
+                setType(HISTORY, x, y, false);
             }
         }
-        console.log(maze);
+        EXIT_X = x;
+        EXIT_Y = y - 1;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
+        go(maze, START_X, START_Y);
+        let i = 0;
+        setInterval(() => {
+            if (i < STATUS_ARR.length) {
+                drawPath('canvas1', STATUS_ARR[i]);
+                i++;
+            }
+        }, DELAY);
+    }
+
+    function drawPath(id, maze) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        let context = canvas.getContext('2d');
+        for (let x in maze) {
+            for (let y in maze[x]) {
+                switch (maze[x][y]) {
+                    case ROAD:
+                        context.fillStyle = 'red';
+                        break;
+                    case EMPTY:
+                        context.fillStyle = 'white';
+                        break;
+                    default:
+                        context.fillStyle = 'blue';
+                }
+                context.fillRect(x * SIZE, y * SIZE, SIZE, SIZE);
+            }
+        }
     }
 
     function jsReadFiles(files) {
