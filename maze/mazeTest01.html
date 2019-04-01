@@ -9,7 +9,7 @@
 <canvas height="900" id="canvas1" style="background:white;" width="900"></canvas>
 <div id="div1"></div>
 <script>
-    let DELAY = 50;
+    let DELAY = 1;
     let SIZE = 8;
     let WALL = '#';
     let EMPTY = 0;
@@ -76,7 +76,7 @@
                 setType(HISTORY, x, y, false);
             }
         }
-        EXIT_X = x;
+        EXIT_X = x - 1;
         EXIT_Y = y - 1;
         STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
         go(maze, START_X, START_Y);
