@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>堆排序可视化</title>
+</head>
+<body>
+<script>
+    const CONFIG = {
+        arrLength: 15
+    };
+
+    // 整理堆,使start-end区间的堆->每个父节点都比子节点大
+    function collating(arr, start, end) {
+        // 以start为根
+        let root = start;
+        while (true) {
+            // 获取父节点的第一个子节点索引 左子节点为2*i+1,右子节点为2*i+2
+            let child = root * 2 + 1;
+            if (child > end) {
+                // 子节点越界时节束整理
+                break;
+            }
+            if (child + 1 <= end && arr[child + 1] > arr[child]) {
+                // 获取两个子节点的最大节点索引
+                child++;
+            }
+            if (arr[child] > arr[root]) {
+                // 如果子节点比父节点大,则互换
+                [arr[child], arr[root]] = [arr[root], arr[child]];
+                // 互换后重设根节点,使下一个循环继续整理root的下一级节点
+                root = child;
+            } else {
+                // 父节点大于子节点,节束整理
+                break;
+            }
+        }
+
+    }
+
+    // 堆排序
+    function sortHeap(arr) {
+        // 因为最后一个节点i = length-1,子节点索引=父结点的索引pIndex*2+1, 所以最后一个父节点 = (length-1-1) /2取整
+        for (let lastParentIndex = (arr.length - 2) >> 1; lastParentIndex >= 0; lastParentIndex--) {
+            // 从最后一个父节点开始整理堆,将最大的元素移到堆顶
+            collating(arr, lastParentIndex, arr.length - 1);
+        }
+        for (let end = arr.length - 1; end > 0; end--) {
+            // 每次堆整理后,此时堆中的每个父节点都比子节点大,将堆中最后一个元素与堆项的最大值互换(不断将最大的元素放到末尾)
+            [arr[0], arr[end]] = [arr[end], arr[0]];
+            // 继续整理未排序的元素
+            collating(arr, 0, end - 1);
+        }
+    }
+
+    function run() {
+        // 生成随机数组
+        let arr = [];
+        for (let i = 0; i < CONFIG.arrLength; i++) {
+            arr.push(Math.floor(Math.random() * 400 + 1));
+        }
+        console.log(arr);
+        sortHeap(arr);
+        console.log(arr);
+    }
+
+    run();
+</script>
+</body>
+</html>
