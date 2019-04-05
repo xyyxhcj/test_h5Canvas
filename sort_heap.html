@@ -4,11 +4,26 @@
     <meta charset="UTF-8">
     <title>堆排序可视化</title>
 </head>
+写着玩,一会睡觉了,明早8点继续,准备在浏览器下方实现一个二叉树的整理-元素交换的动态效果
 <body>
+<canvas height="900" id="canvas1" style="background:white;" width="800"></canvas>
 <script>
     const CONFIG = {
-        arrLength: 15
+        arrLength: 15,
+        delay: 100
     };
+    // 定义数组状态
+    const ITEM = {
+        arr: [],
+        // 已排序的索引起始位置
+        orderedIndexStart: Number,
+        // 正在交换的索引
+        changingIndex: [],
+        // 正在对比的索引
+        comparingIndex: []
+    };
+    // 存储排序过程中的数组
+    const STATUS_ARR = [];
 
     // 整理堆,使start-end区间的堆->每个父节点都比子节点大
     function collating(arr, start, end) {
@@ -18,24 +33,27 @@
             // 获取父节点的第一个子节点索引 左子节点为2*i+1,右子节点为2*i+2
             let child = root * 2 + 1;
             if (child > end) {
-                // 子节点越界时节束整理
+                // 子节点越界时结束整理
                 break;
             }
+            putStatus(arr, -1, [], [child, child + 1]);
             if (child + 1 <= end && arr[child + 1] > arr[child]) {
                 // 获取两个子节点的最大节点索引
                 child++;
             }
+            putStatus(arr, -1, [], [child, root]);
             if (arr[child] > arr[root]) {
                 // 如果子节点比父节点大,则互换
+                putStatus(arr, -1, [child, root], []);
                 [arr[child], arr[root]] = [arr[root], arr[child]];
                 // 互换后重设根节点,使下一个循环继续整理root的下一级节点
                 root = child;
+                putStatus(arr, -1, [], []);
             } else {
-                // 父节点大于子节点,节束整理
+                // 父节点大于子节点,结束整理
                 break;
             }
         }
-
     }
 
     // 堆排序
@@ -48,23 +66,120 @@
         for (let end = arr.length - 1; end > 0; end--) {
             // 每次堆整理后,此时堆中的每个父节点都比子节点大,将堆中最后一个元素与堆项的最大值互换(不断将最大的元素放到末尾)
             [arr[0], arr[end]] = [arr[end], arr[0]];
+            // end索引之后的元素已排序,标记状态
+            putStatus(arr, end);
             // 继续整理未排序的元素
             collating(arr, 0, end - 1);
         }
+        putStatus(arr, 0);
     }
 
-    function run() {
+    // 根据不同的元素状态画图
+    function draw(canvas, item) {
+        let context = canvas.getContext('2d');
+        // 上半部分的画布高度
+        let height = canvas.getAttribute('height');
+        let maxHeight = 410;
+        let width = canvas.getAttribute('width');
+        let w = width / item.arr.length;
+        context.clearRect(0, 0, 800, 900);
+        let tempArr = [];
+        // 上半张画布
+        for (let i = 0; i < item.arr.length; i++) {
+            if (i >= item.orderedIndexStart) {
+                context.fillStyle = 'orange';
+            } else {
+                context.fillStyle = 'lightGray';
+                // 存储节点对象,使之能够存储x,y坐标
+                tempArr.push({value: item.arr[i]});
+            }
+            context.fillRect(i * w, maxHeight - item.arr[i], w - 1, item.arr[i]);
+        }
+        // 下半张画布
+        /**
+         * orderedIndexStart: Number,
+         // 正在交换的索引
+         changingIndex: [],
+         // 正在对比的索引
+         comparingIndex: []
+         */
+        if (item.orderedIndexStart !== 0) {
+            context.font = "bold 15px '字体','字体','微软雅黑','宋体'";
+            /*            for (let i = 0; i < item.orderedIndexStart; i++) {
+                            if (i === 0) {
+
+                            }
+                        }*/
+            let root = 0;
+            //沿着坐标点(100,100)为圆心、半径为50px的圆的顺时针方向绘制弧线
+            let x = width / 2;
+            let y = height - maxHeight - 20;
+            context.arc(x, y, w / 2, 0, Math.PI * 2, false);
+            context.stroke();
+            context.fillText(tempArr[0].value, x - w / 3, y);
+            // 存储元素的坐标,使子节点可获取,作为连线的起点 todo
+            tempArr[0].x = x;
+            tempArr[0].y = y;
+            /*while (true) {
+                /!*!// 获取父节点的第一个子节点索引 左子节点为2*i+1,右子节点为2*i+2
+                let child = root * 2 + 1;
+                if (child > end) {
+                    // 子节点越界时结束整理
+                    break;
+                }
+                putStatus(arr, -1, [], [child, child + 1]);
+                if (child + 1 <= end && arr[child + 1] > arr[child]) {
+                    // 获取两个子节点的最大节点索引
+                    child++;
+                }
+                putStatus(arr, -1, [], [child, root]);
+                if (arr[child] > arr[root]) {
+                    // 如果子节点比父节点大,则互换
+                    putStatus(arr, -1, [child, root], []);
+                    [arr[child], arr[root]] = [arr[root], arr[child]];
+                    // 互换后重设根节点,使下一个循环继续整理root的下一级节点
+                    root = child;
+                    putStatus(arr, -1, [], []);
+                } else {
+                    // 父节点大于子节点,结束整理
+                    break;
+                }*!/
+            }*/
+        }
+    }
+
+    function putStatus(arr, orderedIndexStart = -1, changingIndex = [], comparingIndex = []) {
+        ITEM.arr = arr;
+        if (orderedIndexStart !== -1) {
+            ITEM.orderedIndexStart = orderedIndexStart;
+        }
+        ITEM.changingIndex = changingIndex;
+        ITEM.comparingIndex = comparingIndex;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(ITEM)));
+    }
+
+    function run(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
         // 生成随机数组
         let arr = [];
         for (let i = 0; i < CONFIG.arrLength; i++) {
             arr.push(Math.floor(Math.random() * 400 + 1));
         }
-        console.log(arr);
+        putStatus(arr, CONFIG.arrLength);
         sortHeap(arr);
-        console.log(arr);
+        let i = 0;
+        setInterval(() => {
+            if (i < STATUS_ARR.length) {
+                draw(canvas, STATUS_ARR[i]);
+                i++;
+            }
+        }, CONFIG.delay);
     }
 
-    run();
+    run('canvas1');
 </script>
 </body>
 </html>
