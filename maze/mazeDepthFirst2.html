@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>深度优先遍历,选择最优路径后中止搜索</title>
+</head>
+<body>
+<input type="file" onchange="jsReadFiles(this.files)"/>
+<canvas height="900" id="canvas1" style="background:white;" width="900"></canvas>
+<div id="div1"></div>
+<script>
+    // 定义栈,保存等待查找路径的点
+    const COORDINATE_LIST = [];
+    // 定义坐标对象
+    const Position = {
+        x: 0,
+        y: 0,
+        // 坐标类型
+        type: '',
+        prePosition: Object
+    };
+    // 配置
+    const CONFIG = {
+        // 延迟
+        delay: 1,
+        // 坐标所占像素
+        size: 3,
+        // 墙标识
+        wall: '#',
+        // 标记空白的路
+        empty: 0,
+        // 标记路径
+        road: 1,
+        // 标记路线
+        path: 2,
+        // 开始坐标
+        startX: 1,
+        startY: 2,
+        // 终点坐标
+        exitX: Number,
+        exitY: Number,
+
+    };
+    // 记录走过的坐标
+    const HISTORY = {};
+    // 定义四个方向下一步的计算方式:上右下左
+    const NEXT = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    // 保存状态
+    const STATUS_ARR = [];
+
+    function run() {
+        let position;
+        let maze;
+        // 标记迷宫是否有终点
+        let end = false;
+        while (COORDINATE_LIST.length > 0) {
+            // 获取待探索坐标
+            let pop = COORDINATE_LIST.pop();
+            maze = pop.maze;
+            position = pop.position;
+            HISTORY[position.x][position.y] = true;
+            setType(maze, position.x, position.y, CONFIG.road);
+            STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
+            if (position.x === CONFIG.exitX && position.y === CONFIG.exitY) {
+                end = true;
+                break;
+            }
+            for (let i = 0; i < NEXT.length; i++) {
+                let go_x = position.x + NEXT[i][0];
+                let go_y = position.y + NEXT[i][1];
+                if (go_x > 0 && go_y > 0 && (!HISTORY[go_x][go_y] || !HISTORY[go_x][go_y].type) && maze[go_x][go_y].type === CONFIG.empty) {
+                    let nextPosition = Object.create(position);
+                    nextPosition.x = go_x;
+                    nextPosition.y = go_y;
+                    // 存储上一级坐标
+                    nextPosition.prePosition = position;
+                    // 将当前坐标加入待探索栈/队列
+                    COORDINATE_LIST.push({maze: maze, position: nextPosition});
+                }
+            }
+        }
+        if (end) {
+            // 标记路线
+            while (position.prePosition) {
+                setType(maze, position.x, position.y, CONFIG.path);
+                position = position.prePosition;
+                STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
+            }
+            setType(maze, position.x, position.y, CONFIG.path);
+            STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
+        }
+    }
+
+    // 设置点的类型 墙/空格/路线
+    function setType(dict, x, y, type) {
+        let position = Object.create(Position);
+        if (!dict[x]) {
+            dict[x] = {};
+        }
+        position.x = x;
+        position.y = y;
+        position.type = type;
+        dict[x][y] = position;
+    }
+
+    function draw(id, data) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        let context = canvas.getContext('2d');
+        context.fillStyle = 'blue';
+        let maze = {};
+        let x = y = 0;
+        for (let i = 0; i < data.length; i++, x += 1) {
+            if (data[i] === '\n') {
+                y += 1;
+                x = 0;
+            }
+            if (data[i] === CONFIG.wall) {
+                setType(maze, x, y, CONFIG.wall);
+                context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
+            } else {
+                setType(maze, x, y, CONFIG.empty);
+                setType(HISTORY, x, y, false);
+            }
+        }
+        CONFIG.exitX = x - 1;
+        CONFIG.exitY = y - 1;
+        STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
+        let position = Object.create(Position);
+        position.x = CONFIG.startX;
+        position.y = CONFIG.startY;
+        COORDINATE_LIST.push({maze: maze, position});
+        run();
+        let i = 0;
+        setInterval(() => {
+            if (i < STATUS_ARR.length) {
+                drawPath('canvas1', STATUS_ARR[i]);
+                i++;
+            }
+        }, CONFIG.delay);
+    }
+
+    function drawPath(id, maze) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        let context = canvas.getContext('2d');
+        for (let x in maze) {
+            for (let y in maze[x]) {
+                switch (maze[x][y].type) {
+                    case CONFIG.path:
+                        context.fillStyle = 'yellow';
+                        break;
+                    case CONFIG.road:
+                        context.fillStyle = 'violet';
+                        break;
+                    case CONFIG.empty:
+                        context.fillStyle = 'white';
+                        break;
+                    default:
+                        context.fillStyle = 'blue';
+                }
+                context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
+            }
+        }
+    }
+
+    function jsReadFiles(files) {
+        if (files.length) {
+            let file = files[0];
+            let reader = new FileReader();
+            if (/text+/.test(file.type)) {
+                // 文本类型
+                reader.onload = function () {
+                    draw('canvas1', this.result);
+                };
+                reader.readAsText(file);
+            } else if (/image+/.test(file.type)) {
+                reader.onload = function () {
+                    document.getElementById('div1').innerHTML = '<img src="' + this.result + '" alt=""/>';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+</script>
+</body>
+</html>
