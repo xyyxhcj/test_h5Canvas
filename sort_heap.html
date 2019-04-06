@@ -4,23 +4,26 @@
     <meta charset="UTF-8">
     <title>堆排序可视化</title>
 </head>
-写着玩,一会睡觉了,明早8点继续,准备在浏览器下方实现一个二叉树的整理-元素交换的动态效果
+准备在浏览器下方实现一个二叉树的整理-元素交换的动态效果
 <body>
-<canvas height="900" id="canvas1" style="background:white;" width="800"></canvas>
+<canvas height="1100" id="canvas1" style="background:white;" width="800"></canvas>
 <script>
     const CONFIG = {
-        arrLength: 15,
-        delay: 100
+        arrLength: 25,
+        delay: 800,
+        distance: 20
     };
     // 定义数组状态
     const ITEM = {
         arr: [],
         // 已排序的索引起始位置
         orderedIndexStart: Number,
-        // 正在交换的索引
-        changingIndex: [],
+        // 交换索引中的大的一方
+        bigIndex: Number,
         // 正在对比的索引
-        comparingIndex: []
+        comparingIndex: [],
+        // 标记已整理完毕
+        collated: false
     };
     // 存储排序过程中的数组
     const STATUS_ARR = [];
@@ -36,21 +39,24 @@
                 // 子节点越界时结束整理
                 break;
             }
-            putStatus(arr, -1, [], [child, child + 1]);
+            putStatus(arr, -1, -1, [child, child + 1]);
             if (child + 1 <= end && arr[child + 1] > arr[child]) {
                 // 获取两个子节点的最大节点索引
                 child++;
             }
-            putStatus(arr, -1, [], [child, root]);
+            putStatus(arr, -1, -1, [child, root]);
             if (arr[child] > arr[root]) {
                 // 如果子节点比父节点大,则互换
-                putStatus(arr, -1, [child, root], []);
+                putStatus(arr, -1, child, []);
                 [arr[child], arr[root]] = [arr[root], arr[child]];
                 // 互换后重设根节点,使下一个循环继续整理root的下一级节点
+                putStatus(arr, -1, root, []);
+                putStatus(arr, -1, -1, []);
                 root = child;
-                putStatus(arr, -1, [], []);
             } else {
                 // 父节点大于子节点,结束整理
+                putStatus(arr, -1, root, []);
+                putStatus(arr, -1, -1, []);
                 break;
             }
         }
@@ -58,12 +64,15 @@
 
     // 堆排序
     function sortHeap(arr) {
-        // 因为最后一个节点i = length-1,子节点索引=父结点的索引pIndex*2+1, 所以最后一个父节点 = (length-1-1) /2取整
+        // 因为最后一个节点index = length-1,子节点索引=父结点的索引pIndex*2+1, 所以最后一个父节点 = (length-1-1) /2取整
+        //                             [对于一个偶数(如果最后一个节点为右子结点)而言(index-1)/2=(index-2)/2]
         for (let lastParentIndex = (arr.length - 2) >> 1; lastParentIndex >= 0; lastParentIndex--) {
             // 从最后一个父节点开始整理堆,将最大的元素移到堆顶
             collating(arr, lastParentIndex, arr.length - 1);
         }
         for (let end = arr.length - 1; end > 0; end--) {
+            putStatus(arr, end + 1, 0, [], true);
+            putStatus(arr, end + 1, 0, [0, end], true);
             // 每次堆整理后,此时堆中的每个父节点都比子节点大,将堆中最后一个元素与堆项的最大值互换(不断将最大的元素放到末尾)
             [arr[0], arr[end]] = [arr[end], arr[0]];
             // end索引之后的元素已排序,标记状态
@@ -83,6 +92,7 @@
         let width = canvas.getAttribute('width');
         let w = width / item.arr.length;
         context.clearRect(0, 0, 800, 900);
+        // 下半张画布需要画出的点
         let tempArr = [];
         // 上半张画布
         for (let i = 0; i < item.arr.length; i++) {
@@ -96,65 +106,80 @@
             context.fillRect(i * w, maxHeight - item.arr[i], w - 1, item.arr[i]);
         }
         // 下半张画布
-        /**
-         * orderedIndexStart: Number,
-         // 正在交换的索引
-         changingIndex: [],
-         // 正在对比的索引
-         comparingIndex: []
-         */
-        if (item.orderedIndexStart !== 0) {
-            context.font = "bold 15px '字体','字体','微软雅黑','宋体'";
-            /*            for (let i = 0; i < item.orderedIndexStart; i++) {
-                            if (i === 0) {
-
-                            }
-                        }*/
-            let root = 0;
-            //沿着坐标点(100,100)为圆心、半径为50px的圆的顺时针方向绘制弧线
-            let x = width / 2;
-            let y = height - maxHeight - 20;
-            context.arc(x, y, w / 2, 0, Math.PI * 2, false);
-            context.stroke();
-            context.fillText(tempArr[0].value, x - w / 3, y);
-            // 存储元素的坐标,使子节点可获取,作为连线的起点 todo
-            tempArr[0].x = x;
-            tempArr[0].y = y;
-            /*while (true) {
-                /!*!// 获取父节点的第一个子节点索引 左子节点为2*i+1,右子节点为2*i+2
-                let child = root * 2 + 1;
-                if (child > end) {
-                    // 子节点越界时结束整理
-                    break;
+        if (item.orderedIndexStart !== -1) {
+            // 半径
+            let r = w / 2;
+            // 连线坐标差值
+            let yDistance = r + CONFIG.distance;
+            context.font = "bold 19px '字体','字体','微软雅黑','宋体'";
+            for (let i = 0; i < item.orderedIndexStart; i++) {
+                // 重置颜色
+                context.fillStyle = 'lightGray';
+                let x;
+                let y;
+                if (i === item.bigIndex) {
+                    if (item.collated) {
+                        context.fillStyle = 'red';
+                    } else {
+                        context.fillStyle = 'green';
+                    }
+                } else if (item.comparingIndex.indexOf(i) !== -1) {
+                    // 正在对比
+                    context.fillStyle = 'lightBlue';
                 }
-                putStatus(arr, -1, [], [child, child + 1]);
-                if (child + 1 <= end && arr[child + 1] > arr[child]) {
-                    // 获取两个子节点的最大节点索引
-                    child++;
-                }
-                putStatus(arr, -1, [], [child, root]);
-                if (arr[child] > arr[root]) {
-                    // 如果子节点比父节点大,则互换
-                    putStatus(arr, -1, [child, root], []);
-                    [arr[child], arr[root]] = [arr[root], arr[child]];
-                    // 互换后重设根节点,使下一个循环继续整理root的下一级节点
-                    root = child;
-                    putStatus(arr, -1, [], []);
+                if (i === 0) {
+                    // 根节点
+                    //沿着坐标点(100,100)为圆心、半径为r的圆的顺时针方向绘制弧线
+                    x = width / 2;
+                    y = height - maxHeight - 200;
                 } else {
-                    // 父节点大于子节点,结束整理
-                    break;
-                }*!/
-            }*/
+                    // 通过父节点动态计算坐标,并连线
+                    let parentNode = tempArr[(i - 1) >> 1];
+                    // 计算当前层数 此处i 0基,故取i+1为值
+                    let level = Math.floor(Math.log(i + 1) / Math.log(2));
+                    // 求当前层节点数,第i层的结点总数不超过 Math.pow(2,i-1)
+                    let lastNodes = Math.pow(2, level - 1);
+                    // 通过层数计算x坐标每个节点的位移量
+                    let xDistance = (width / lastNodes - CONFIG.distance) >> 2;
+                    console.log(i + '-' + level + '-' + lastNodes + '-' + xDistance) //0-0.5-790
+                    if (i % 2 === 1) {
+                        // 左节点
+                        x = parentNode.x - xDistance;
+                    } else {
+                        x = parentNode.x + xDistance;
+                    }
+                    y = parentNode.y + yDistance;
+                    // 连线
+                    context.lineWidth = 1;
+                    context.strokeStyle = 'lightGray';
+                    context.beginPath();
+                    context.moveTo(parentNode.x, parentNode.y);
+                    context.lineTo(x, y);
+                    context.closePath();
+                    context.stroke();
+                }
+                context.beginPath();
+                context.arc(x, y, r, 0, Math.PI * 2, true);
+                context.closePath();
+                context.stroke();
+                context.fill();
+                context.fillStyle = 'black';
+                context.fillText(tempArr[i].value, x - w / 3, y);
+                // 存储元素的坐标,使子节点可获取,用于计算子节点坐标,并作为连线的起点
+                tempArr[i].x = x;
+                tempArr[i].y = y;
+            }
         }
     }
 
-    function putStatus(arr, orderedIndexStart = -1, changingIndex = [], comparingIndex = []) {
+    function putStatus(arr, orderedIndexStart = -1, bigIndex = -1, comparingIndex = [], collated = false) {
         ITEM.arr = arr;
         if (orderedIndexStart !== -1) {
             ITEM.orderedIndexStart = orderedIndexStart;
         }
-        ITEM.changingIndex = changingIndex;
+        ITEM.bigIndex = bigIndex;
         ITEM.comparingIndex = comparingIndex;
+        ITEM.collated = collated;
         STATUS_ARR.push(JSON.parse(JSON.stringify(ITEM)));
     }
 
