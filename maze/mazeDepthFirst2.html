@@ -39,7 +39,8 @@
         // 终点坐标
         exitX: Number,
         exitY: Number,
-
+        // 标记迷宫是否找到终点
+        end: false
     };
     // 记录走过的坐标
     const HISTORY = {};
@@ -51,8 +52,6 @@
     function run() {
         let position;
         let maze;
-        // 标记迷宫是否有终点
-        let end = false;
         while (COORDINATE_LIST.length > 0) {
             // 获取待探索坐标
             let pop = COORDINATE_LIST.pop();
@@ -62,7 +61,7 @@
             setType(maze, position.x, position.y, CONFIG.road);
             STATUS_ARR.push(JSON.parse(JSON.stringify(maze)));
             if (position.x === CONFIG.exitX && position.y === CONFIG.exitY) {
-                end = true;
+                CONFIG.end = true;
                 break;
             }
             for (let i = 0; i < NEXT.length; i++) {
@@ -79,7 +78,7 @@
                 }
             }
         }
-        if (end) {
+        if (CONFIG.end) {
             // 标记路线
             while (position.prePosition) {
                 setType(maze, position.x, position.y, CONFIG.path);

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>迷宫生成</title>
+</head>
+<body>
+<canvas height="900" id="canvas1" style="background:white;" width="900"></canvas>
+<script>
+    // 定义坐标对象
+    const Position = {
+        x: 0,
+        y: 0,
+        // 坐标类型
+        type: '',
+        prePosition: Object
+    };
+    // 迷宫对象
+    const MAZE_DATA = {
+        // 迷宫数据
+        arr: {},
+        // 去除迷雾区域
+        clearMist: [],
+        // 开始坐标
+        startX: 0,
+        startY: 1,
+        // 终点坐标
+        exitX: Number,
+        exitY: Number,
+        height: Number,
+        width: Number
+    };
+
+    function instance(width, height) {
+        if (width % 2 === 0) {
+            width--;
+        }
+        if (height % 2 === 0) {
+            height--;
+        }
+        MAZE_DATA.width = width;
+        MAZE_DATA.height = height;
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                let type;
+                if (i % 2 === 1 && j % 2 === 1) {
+                    type = CONFIG.road;
+                } else {
+                    type = CONFIG.wall;
+                }
+                setType(MAZE_DATA.arr, i, j, type);
+            }
+        }
+        // 起点
+        setType(MAZE_DATA.arr, MAZE_DATA.startX, MAZE_DATA.startY, CONFIG.road);
+        // 终点
+        MAZE_DATA.exitX = width - 1;
+        MAZE_DATA.exitY = height - 2;
+        setType(MAZE_DATA.arr, MAZE_DATA.exitX, MAZE_DATA.exitY, CONFIG.road);
+        return MAZE_DATA;
+    }
+
+    // 向二维字典中添加数据
+    function setType(arr, i, j, type) {
+        if (!arr[i]) {
+            arr[i] = {};
+        }
+        arr[i][j] = type;
+    }
+
+    // 配置
+    const CONFIG = {
+        // 延迟
+        delay: 500,
+        // 坐标所占像素
+        size: 6,
+        // 墙标识
+        wall: '#',
+        // 标记空白的路
+        empty: 0,
+        // 标记路径
+        road: 1,
+        // 标记路线
+        path: 2,
+    };
+    // 记录走过的坐标
+    const HISTORY = {};
+    const MAZE_HISTORY = {};
+    // 定义四个方向下一步的计算方式:上右下左
+    const NEXT = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    // 保存图状态
+    const STATUS_ARR = [];
+
+    function draw(context, arr) {
+        // 清空画布
+        context.clearRect(0, 0, 1500, 1500);
+        for (let x in arr) {
+            for (let y in arr[x]) {
+                let type = arr[x][y];
+                if (type === CONFIG.wall) {
+                    // 墙
+                    context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
+                }
+            }
+        }
+    }
+
+    function pushStatus(arr) {
+        STATUS_ARR.push(JSON.parse(JSON.stringify(arr)));
+    }
+
+    function run(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        let context = canvas.getContext('2d');
+        context.fillStyle = 'blue';
+        instance(9, 9);
+        draw(context, MAZE_DATA.arr);
+        // 存储待探索区域
+        let queue = [];
+        // 放入起始坐标
+        queue.push({maze: MAZE_DATA.arr, x: 1, y: 1});
+        while (queue.length > 0) {
+            let pop = queue.pop();
+            // 标记已探索
+            let position = Object.create(Position);
+            position.x = pop.x;
+            position.y = pop.y;
+            position.type = true;
+            setType(MAZE_HISTORY, pop.x, pop.y, position);
+            if (pop.prePosition) {
+                // 凿开迷宫中的墙壁
+                let x = (pop.x + pop.prePosition.x) >> 1;
+                let y = (pop.y + pop.prePosition.y) >> 1;
+                setType(MAZE_DATA.arr, x, y, CONFIG.road);
+                // setType(MAZE_HISTORY, x, y, position);
+                pushStatus(MAZE_DATA.arr);
+            }
+            // 向四个方向各走2步,连线
+            for (let i = 0; i < NEXT.length; i++) {
+                let goX = pop.x + NEXT[i][0] * 2;
+                let goY = pop.y + NEXT[i][1] * 2;
+                if (goX > 0 && goY > 0 && goX < MAZE_DATA.width && goY < MAZE_DATA.height
+                    && MAZE_DATA.arr[goX][goY] === CONFIG.road && (!MAZE_HISTORY[goX] || !MAZE_HISTORY[goX][goY])) {
+                    queue.push({maze: MAZE_DATA.arr, x: goX, y: goY, prePosition: position});
+                }
+            }
+        }
+        /*CONFIG.exitX = x - 1;
+        CONFIG.exitY = y - 1;*/
+        let i = 0;
+        setInterval(() => {
+            if (i < STATUS_ARR.length) {
+                draw(context, STATUS_ARR[i]);
+                i++;
+            }
+        }, CONFIG.delay);
+    }
+
+    run('canvas1');
+</script>
+</body>
+</html>
