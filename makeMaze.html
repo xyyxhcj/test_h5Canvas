@@ -5,6 +5,7 @@
     <title>迷宫生成</title>
 </head>
 <body>
+<input type="button" onclick="go()" value="go"/>
 <canvas height="1500" id="canvas1" style="background:white;" width="1500"></canvas>
 <script>
     // 配置
@@ -74,7 +75,7 @@
                     type = CONFIG.wall;
                 }
                 setType(MAZE_DATA.arr, y, x, type);
-                // addMist(y, x);
+                addMist(y, x);
             }
         }
         // 起点
@@ -90,9 +91,14 @@
 
     // 向二维字典中添加数据
     function setType(dict, x, y, type) {
-        let position = Object.create(Position);
+        let position;
         if (!dict[x]) {
             dict[x] = {};
+        }
+        if (dict[x][y]) {
+            position = dict[x][y];
+        } else {
+            position = Object.create(Position);
         }
         position.x = x;
         position.y = y;
@@ -101,20 +107,20 @@
     }
 
     // 清除迷雾
-    // function clearMist(x, y) {
-    //     for (let i = x - 2; i <= x + 2; i++) {
-    //         for (let j = y - 2; j <= y + 2; y++) {
-    //             if (MAZE_DATA.arr[x] !== undefined && MAZE_DATA.arr[x][y] !== undefined) {
-    //                 MAZE_DATA.arr[x][y].mist = false;
-    //             }
-    //         }
-    //     }
-    // }
+    function clearMist(x, y) {
+        for (let i = x - 1; i <= x + 1; i++) {
+            for (let j = y - 1; j <= y + 1; j++) {
+                if (MAZE_DATA.arr[i] !== undefined && MAZE_DATA.arr[i][j] !== undefined) {
+                    MAZE_DATA.arr[i][j].mist = false;
+                }
+            }
+        }
+    }
 
     // 添加迷雾
-    // function addMist(x, y) {
-    //     MAZE_DATA.arr[x][y].mist = true;
-    // }
+    function addMist(x, y) {
+        MAZE_DATA.arr[x][y].mist = true;
+    }
 
     // 画迷宫
     function drawMaze(context, arr) {
@@ -123,11 +129,11 @@
         for (let x in arr) {
             for (let y in arr[x]) {
                 // 不显示迷雾中的迷宫
-                // if (arr[x][y].mist === false) {
-                //     context.fillStyle = 'gray';
-                //     context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
-                //     continue;
-                // }
+                if (arr[x][y].mist === true) {
+                    context.fillStyle = 'gray';
+                    context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
+                    continue;
+                }
                 if (arr[x][y].type === CONFIG.wall) {
                     // 墙
                     context.fillStyle = 'blue';
@@ -178,7 +184,7 @@
             position = getPosition(queue);
             if (maze[position.x][position.y].type === CONFIG.default && !MAZE_HISTORY[position.x][position.y].type) {
                 // 清除迷雾
-                // clearMist(position.x, position.y);
+                clearMist(position.x, position.y);
                 // 标记已探索
                 setType(MAZE_HISTORY, position.x, position.y, true);
                 // 标记为空白
@@ -188,6 +194,8 @@
                     let x = (position.x + position.prePosition.x) >> 1;
                     let y = (position.y + position.prePosition.y) >> 1;
                     setType(maze, x, y, CONFIG.empty);
+                    // 清除迷雾
+                    clearMist(position.x, position.y);
                     pushStatus(maze);
                 }
                 // 向四个方向各走2步,连线
@@ -204,7 +212,6 @@
             }
         }
         let i = 0;
-        console.log(STATUS_ARR);
         setInterval(() => {
             if (i < STATUS_ARR.length) {
                 drawMaze(context, STATUS_ARR[i]);
@@ -213,6 +220,11 @@
         }, CONFIG.delay);
     }
 
+    // 走迷宫
+    function go() {
+        console.log('go');
+
+    }
     run('canvas1');
 </script>
 </body>
