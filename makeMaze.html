@@ -13,7 +13,7 @@
         y: 0,
         // 坐标类型
         type: '',
-        prePosition: Object
+        prePosition: undefined
     };
     // 迷宫对象
     const MAZE_DATA = {
@@ -83,7 +83,7 @@
         // 延迟
         delay: 500,
         // 坐标所占像素
-        size: 6,
+        size: 15,
         // 墙标识
         wall: '#',
         // 标记空白的路
@@ -125,7 +125,7 @@
         let position = Object.create(Position);
         position.x = x;
         position.y = y;
-        queue.push({maze: MAZE_DATA.arr, position: position});
+        queue.push(position);
         return position;
     }
 
@@ -144,33 +144,29 @@
         // 放入起始坐标
         let position = addQueue(queue, MAZE_DATA.layoutBeginX, MAZE_DATA.layoutBeginY);
         while (queue.length > 0) {
-            let pop = queue.pop();
-            maze = pop.maze;
-            position = pop.position;
-            // 标记已探索
-            setType(MAZE_HISTORY, position.x, position.y, true);
-            // setType(maze, position.x, position.y, CONFIG.empty);
-            if (position.prePosition) {
-                // 凿开迷宫中的墙壁
-                let x = (position.x + position.prePosition.x) >> 1;
-                let y = (position.y + position.prePosition.y) >> 1;
-                setType(maze, x, y, CONFIG.empty);
-                // setType(MAZE_HISTORY, x, y, true);
-                pushStatus(maze);
-            }
-            // 向四个方向各走2步,连线
-            for (let i = 0; i < NEXT.length; i++) {
-                let goX = parseInt(position.x + NEXT[i][0] * 2);
-                let goY = parseInt(position.y + NEXT[i][1] * 2);
-                console.log(goX + '_' + goY);
-                // console.log(maze[goX][goY]);
-                if (goX > 0 && goY > 0 && goX < MAZE_DATA.width && goY < MAZE_DATA.height && maze[goX][goY] !== undefined && maze[goX][goY].type === CONFIG.default && (!MAZE_HISTORY[goX][goY] || !MAZE_HISTORY[goX][goY].type)) {
-
-                    // if (goX > 0 && goY > 0 && goX < MAZE_DATA.width && goY < MAZE_DATA.height && (!MAZE_HISTORY[goX][goY] || !MAZE_HISTORY[goX][goY].type) && maze[goX][goY].type === CONFIG.empty) {
-                    // 加入待探索栈/队列
-                    let nextPosition = addQueue(queue, goX, goY);
-                    // 存储上一级坐标
-                    nextPosition.prePosition = position;
+            position = queue.pop();
+            if (maze[position.x][position.y].type === CONFIG.default && !MAZE_HISTORY[position.x][position.y].type){
+                // 标记已探索
+                setType(MAZE_HISTORY, position.x, position.y, true);
+                // 标记为空白
+                setType(maze, position.x, position.y, CONFIG.empty);
+                if (position.prePosition !== undefined) {
+                    // 凿开迷宫中的墙壁
+                    let x = (position.x + position.prePosition.x) >> 1;
+                    let y = (position.y + position.prePosition.y) >> 1;
+                    setType(maze, x, y, CONFIG.empty);
+                    pushStatus(maze);
+                }
+                // 向四个方向各走2步,连线
+                for (let i = 0; i < NEXT.length; i++) {
+                    let goX = parseInt(position.x + NEXT[i][0] * 2);
+                    let goY = parseInt(position.y + NEXT[i][1] * 2);
+                    if (goX > 0 && goY > 0 && goX < MAZE_DATA.width && goY < MAZE_DATA.height) {
+                        // 加入待探索栈/队列
+                        let nextPosition = addQueue(queue, goX, goY);
+                        // 存储上一级坐标
+                        nextPosition.prePosition = position;
+                    }
                 }
             }
         }
