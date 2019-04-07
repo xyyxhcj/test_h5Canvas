@@ -11,7 +11,7 @@
     // 配置
     const CONFIG = {
         // 延迟
-        delay: 10,
+        delay: 1,
         // 坐标所占像素
         size: 5,
         // 墙标识
@@ -173,7 +173,7 @@
         }
         let context = canvas.getContext('2d');
         // 迷宫初始化
-        instance(99, 99);
+        instance(19, 19);
         let maze = MAZE_DATA.arr;
         drawMaze(context, maze);
         // 存储待探索区域
@@ -223,7 +223,35 @@
     // 走迷宫
     function go() {
         console.log('go');
-
+        // 标记是否找到出口
+        let goOut = false;
+        // 获取迷宫起点坐标放入栈
+        let position = Object.create(Position);
+        position.x = MAZE_DATA.startX;
+        position.y = MAZE_DATA.startY;
+        let queue = [];
+        queue.push(position);
+        while (queue.length > 0) {
+            console.log(1);
+            position = queue.pop();
+            position.type = CONFIG.road;
+            setType(HISTORY, position.x, position.y, true);
+            if (position.x === MAZE_DATA.exitX && position.y === MAZE_DATA.exitY) {
+                goOut = true;
+                break;
+            }
+            for (let i = 0; i < NEXT.length; i++) {
+                let goX = position.x + NEXT[i][0];
+                let goY = position.y + NEXT[i][1];
+                if (goX > 0 && goY > 0 && MAZE_DATA.arr[goX][goY].type !== CONFIG.wall && (!HISTORY[goX]||!HISTORY[goX][goY])) {
+                    let nextPosition = Object.create(Position);
+                    nextPosition.x = goX;
+                    nextPosition.y = goY;
+                    queue.push(nextPosition);
+                }
+            }
+        }
+        console.log(position);
     }
     run('canvas1');
 </script>
