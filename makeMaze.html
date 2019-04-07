@@ -5,8 +5,31 @@
     <title>迷宫生成</title>
 </head>
 <body>
-<canvas height="900" id="canvas1" style="background:white;" width="900"></canvas>
+<canvas height="1500" id="canvas1" style="background:white;" width="1500"></canvas>
 <script>
+    // 配置
+    const CONFIG = {
+        // 延迟
+        delay: 10,
+        // 坐标所占像素
+        size: 5,
+        // 墙标识
+        wall: '#',
+        // 标记空白的路
+        empty: 0,
+        // 标记路径
+        road: 1,
+        // 标记路线
+        path: 2,
+        default: -1
+    };
+    // 记录走过的坐标
+    const HISTORY = {};
+    const MAZE_HISTORY = {};
+    // 定义四个方向下一步的计算方式:上右下左
+    const NEXT = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    // 保存图状态
+    const STATUS_ARR = [];
     // 定义坐标对象
     const Position = {
         x: 0,
@@ -19,8 +42,6 @@
     const MAZE_DATA = {
         // 迷宫数据
         arr: {},
-        // 去除迷雾区域
-        clearMist: [],
         // 开始坐标
         startX: 0,
         startY: 1,
@@ -43,16 +64,17 @@
         }
         MAZE_DATA.width = width;
         MAZE_DATA.height = height;
-        for (let i = 0; i < height; i++) {
-            for (let j = 0; j < width; j++) {
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
                 let type;
-                if (i % 2 === 1 && j % 2 === 1) {
-                    setType(MAZE_HISTORY, i, j, false);
+                if (y % 2 === 1 && x % 2 === 1) {
+                    setType(MAZE_HISTORY, y, x, false);
                     type = CONFIG.default;
                 } else {
                     type = CONFIG.wall;
                 }
-                setType(MAZE_DATA.arr, i, j, type);
+                setType(MAZE_DATA.arr, y, x, type);
+                // addMist(y, x);
             }
         }
         // 起点
@@ -78,29 +100,21 @@
         dict[x][y] = position;
     }
 
-    // 配置
-    const CONFIG = {
-        // 延迟
-        delay: 500,
-        // 坐标所占像素
-        size: 15,
-        // 墙标识
-        wall: '#',
-        // 标记空白的路
-        empty: 0,
-        // 标记路径
-        road: 1,
-        // 标记路线
-        path: 2,
-        default: -1
-    };
-    // 记录走过的坐标
-    const HISTORY = {};
-    const MAZE_HISTORY = {};
-    // 定义四个方向下一步的计算方式:上右下左
-    const NEXT = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-    // 保存图状态
-    const STATUS_ARR = [];
+    // 清除迷雾
+    // function clearMist(x, y) {
+    //     for (let i = x - 2; i <= x + 2; i++) {
+    //         for (let j = y - 2; j <= y + 2; y++) {
+    //             if (MAZE_DATA.arr[x] !== undefined && MAZE_DATA.arr[x][y] !== undefined) {
+    //                 MAZE_DATA.arr[x][y].mist = false;
+    //             }
+    //         }
+    //     }
+    // }
+
+    // 添加迷雾
+    // function addMist(x, y) {
+    //     MAZE_DATA.arr[x][y].mist = true;
+    // }
 
     // 画迷宫
     function drawMaze(context, arr) {
@@ -108,6 +122,12 @@
         context.clearRect(0, 0, 1500, 1500);
         for (let x in arr) {
             for (let y in arr[x]) {
+                // 不显示迷雾中的迷宫
+                // if (arr[x][y].mist === false) {
+                //     context.fillStyle = 'gray';
+                //     context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
+                //     continue;
+                // }
                 if (arr[x][y].type === CONFIG.wall) {
                     // 墙
                     context.fillStyle = 'blue';
@@ -125,8 +145,19 @@
         let position = Object.create(Position);
         position.x = x;
         position.y = y;
-        queue.push(position);
+        // 随机迷宫,向前或后插入
+        Math.random() > 0.5 ? queue.push(position) : queue.unshift(position);
         return position;
+    }
+
+    // 定义如何从栈中取数据
+    function getPosition(queue) {
+        //return queue.pop();
+        // return queue.shift();
+        // 随机迷宫
+        let index = Math.floor(Math.random() * queue.length);
+        [queue[index], queue[0]] = [queue[0], queue[index]];
+        return queue.shift();
     }
 
     function run(id) {
@@ -136,7 +167,7 @@
         }
         let context = canvas.getContext('2d');
         // 迷宫初始化
-        instance(10, 10);
+        instance(99, 99);
         let maze = MAZE_DATA.arr;
         drawMaze(context, maze);
         // 存储待探索区域
@@ -144,8 +175,10 @@
         // 放入起始坐标
         let position = addQueue(queue, MAZE_DATA.layoutBeginX, MAZE_DATA.layoutBeginY);
         while (queue.length > 0) {
-            position = queue.pop();
-            if (maze[position.x][position.y].type === CONFIG.default && !MAZE_HISTORY[position.x][position.y].type){
+            position = getPosition(queue);
+            if (maze[position.x][position.y].type === CONFIG.default && !MAZE_HISTORY[position.x][position.y].type) {
+                // 清除迷雾
+                // clearMist(position.x, position.y);
                 // 标记已探索
                 setType(MAZE_HISTORY, position.x, position.y, true);
                 // 标记为空白
