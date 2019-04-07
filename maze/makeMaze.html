@@ -22,7 +22,9 @@
         road: 1,
         // 标记路线
         path: 2,
-        default: -1
+        default: -1,
+        mazeWidth: 49,
+        mazeHeight: 49
     };
     // 记录走过的坐标
     const HISTORY = {};
@@ -53,7 +55,9 @@
         exitX: Number,
         exitY: Number,
         height: Number,
-        width: Number
+        width: Number,
+        // 标记是否找到出口
+        goOut: false
     };
 
     function instance(width, height) {
@@ -138,6 +142,17 @@
                     // 墙
                     context.fillStyle = 'blue';
                     context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
+                } else if (arr[x][y].type === CONFIG.road) {
+                    if (arr[-1] && arr[-1][-1] && arr[-1][-1].type === MAZE_DATA.goOut) {
+                        continue;
+                    }
+                    // 走过的路
+                    context.fillStyle = 'violet';
+                    context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
+                } else if (arr[x][y].type === CONFIG.path) {
+                    // 路径
+                    context.fillStyle = 'red';
+                    context.fillRect(x * CONFIG.size, y * CONFIG.size, CONFIG.size, CONFIG.size);
                 }
             }
         }
@@ -166,14 +181,18 @@
         return queue.shift();
     }
 
-    function run(id) {
+    function getContext(id) {
         let canvas = document.getElementById(id);
         if (!canvas) {
             return false;
         }
-        let context = canvas.getContext('2d');
+        return canvas.getContext('2d');
+    }
+
+    function run(id) {
+        let context = getContext(id);
         // 迷宫初始化
-        instance(19, 19);
+        instance(CONFIG.mazeWidth, CONFIG.mazeHeight);
         let maze = MAZE_DATA.arr;
         drawMaze(context, maze);
         // 存储待探索区域
@@ -223,8 +242,8 @@
     // 走迷宫
     function go() {
         console.log('go');
-        // 标记是否找到出口
-        let goOut = false;
+        // 清空实时状态记录
+        STATUS_ARR.length = 0;
         // 获取迷宫起点坐标放入栈
         let position = Object.create(Position);
         position.x = MAZE_DATA.startX;
@@ -232,27 +251,48 @@
         let queue = [];
         queue.push(position);
         while (queue.length > 0) {
-            console.log(1);
             position = queue.pop();
             position.type = CONFIG.road;
             setType(HISTORY, position.x, position.y, true);
+            setType(MAZE_DATA.arr, position.x, position.y, CONFIG.road);
+            pushStatus(MAZE_DATA.arr);
             if (position.x === MAZE_DATA.exitX && position.y === MAZE_DATA.exitY) {
-                goOut = true;
+                MAZE_DATA.goOut = true;
                 break;
             }
             for (let i = 0; i < NEXT.length; i++) {
                 let goX = position.x + NEXT[i][0];
                 let goY = position.y + NEXT[i][1];
-                if (goX > 0 && goY > 0 && MAZE_DATA.arr[goX][goY].type !== CONFIG.wall && (!HISTORY[goX]||!HISTORY[goX][goY])) {
+                if (goX > 0 && goY > 0 && MAZE_DATA.arr[goX][goY].type !== CONFIG.wall && (!HISTORY[goX] || !HISTORY[goX][goY])) {
                     let nextPosition = Object.create(Position);
                     nextPosition.x = goX;
                     nextPosition.y = goY;
+                    nextPosition.prePosition = position;
                     queue.push(nextPosition);
                 }
             }
         }
-        console.log(position);
+        if (MAZE_DATA.goOut) {
+            // 标记路径
+            setType(MAZE_DATA.arr, position.x, position.y, CONFIG.path);
+            setType(MAZE_DATA.arr, -1, -1, MAZE_DATA.goOut);
+            pushStatus(MAZE_DATA.arr);
+            while (position.prePosition) {
+                position = position.prePosition;
+                setType(MAZE_DATA.arr, position.x, position.y, CONFIG.path);
+                pushStatus(MAZE_DATA.arr);
+            }
+        }
+        let context = getContext('canvas1');
+        let i = 0;
+        setInterval(() => {
+            if (i < STATUS_ARR.length) {
+                drawMaze(context, STATUS_ARR[i]);
+                i++;
+            }
+        }, CONFIG.delay);
     }
+
     run('canvas1');
 </script>
 </body>
