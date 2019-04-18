@@ -18,21 +18,21 @@
         draw(context, width / 2, height / 2, height / 2, 2, 0);
     }
 
-    function draw(context, x, y, r, step, level) {
+    function draw(context, x, y, r, step, depth) {
         if (r < 1 || step === 0) {
             return;
         }
         context.beginPath();
         // 语法:arc(定义一个中心点,半径,起始角度,结束角度,绘图方向-可选参数:False顺时针/True逆时针)
         context.arc(x, y, r, 0, 2 * Math.PI);
-        if (level % 2 === 0) {
+        if (depth % 2 === 0) {
             context.fillStyle = 'lightblue';
         } else {
             context.fillStyle = 'lightgreen';
         }
         context.fill();
         context.closePath();
-        draw(context, x, y, r - step, step, level + 1);
+        draw(context, x, y, r - step, step, depth + 1);
     }
 
     run('canvas1')
