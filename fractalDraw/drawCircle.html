@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>drawCircle</title>
+</head>
+<body>
+<canvas height="800" id="canvas1" style="background:white;" width="800"></canvas>
+<script>
+    function run(id) {
+        let canvas = document.getElementById(id);
+        if (!canvas) {
+            return false;
+        }
+        let context = canvas.getContext('2d');
+        let height = canvas.getAttribute('height');
+        let width = canvas.getAttribute('width');
+        draw(context, width / 2, height / 2, height / 2, 2, 0);
+    }
+
+    function draw(context, x, y, r, step, level) {
+        if (r < 1 || step === 0) {
+            return;
+        }
+        context.beginPath();
+        // 语法:arc(定义一个中心点,半径,起始角度,结束角度,绘图方向-可选参数:False顺时针/True逆时针)
+        context.arc(x, y, r, 0, 2 * Math.PI);
+        if (level % 2 === 0) {
+            context.fillStyle = 'lightblue';
+        } else {
+            context.fillStyle = 'lightgreen';
+        }
+        context.fill();
+        context.closePath();
+        draw(context, x, y, r - step, step, level + 1);
+    }
+
+    run('canvas1')
+</script>
+</body>
+</html>
